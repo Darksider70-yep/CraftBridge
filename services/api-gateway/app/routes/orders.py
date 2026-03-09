@@ -29,7 +29,7 @@ def create_order(
 def get_order(
     id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_.id),
+    current_user: User = Depends(get_current_user),
 ) -> OrderResponse:
     order = OrderService.get_order_by_id(db=db, order_id=id)
     if current_user.role != "admin" and order.buyer_id != current_user.id:
