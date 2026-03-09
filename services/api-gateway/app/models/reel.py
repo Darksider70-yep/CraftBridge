@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -14,7 +14,10 @@ class Reel(Base):
     artisan_id: Mapped[str] = mapped_column(String(36), ForeignKey("artisans.id"), nullable=False, index=True)
     product_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("products.id"), nullable=True, index=True)
     video_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     caption: Mapped[str | None] = mapped_column(Text, nullable=True)
+    likes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    views: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(tz=UTC)
     )

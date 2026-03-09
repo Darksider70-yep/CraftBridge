@@ -6,12 +6,14 @@ import { Reel } from "@/lib/api";
 
 interface ReelPlayerProps {
   reel: Reel;
+  onVisible?: () => void;
 }
 
-export function ReelPlayer({ reel }: ReelPlayerProps) {
+export function ReelPlayer({ reel, onVisible }: ReelPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
+  const hasTrackedViewRef = useRef(false);
 
   useEffect(() => {
     if (!wrapperRef.current) {
@@ -44,6 +46,14 @@ export function ReelPlayer({ reel }: ReelPlayerProps) {
 
     video.pause();
   }, [inView]);
+
+  useEffect(() => {
+    if (!inView || hasTrackedViewRef.current || !onVisible) {
+      return;
+    }
+    hasTrackedViewRef.current = true;
+    onVisible();
+  }, [inView, onVisible]);
 
   return (
     <div

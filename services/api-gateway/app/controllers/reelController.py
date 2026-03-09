@@ -14,7 +14,10 @@ def _reel_response(reel: Reel) -> ReelResponse:
         artisan_name=reel.artisan.name if reel.artisan else None,
         product_id=reel.product_id,
         video_url=reel.video_url,
+        thumbnail_url=reel.thumbnail_url,
         caption=reel.caption,
+        likes=reel.likes,
+        views=reel.views,
         created_at=reel.created_at,
     )
 
@@ -32,3 +35,13 @@ async def upload_reel_controller(
 def reel_feed_controller(db: Session, limit: int) -> list[ReelResponse]:
     reels = ReelService.get_feed(db=db, limit=limit)
     return [_reel_response(reel) for reel in reels]
+
+
+def like_reel_controller(db: Session, reel_id: str) -> ReelResponse:
+    reel = ReelService.increment_likes(db=db, reel_id=reel_id)
+    return _reel_response(reel)
+
+
+def view_reel_controller(db: Session, reel_id: str) -> ReelResponse:
+    reel = ReelService.increment_views(db=db, reel_id=reel_id)
+    return _reel_response(reel)

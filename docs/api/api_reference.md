@@ -1,119 +1,81 @@
-# CraftBridge API Reference (Phase 3)
+# CraftBridge API Reference (Phase 4)
 
 ## Base Conventions
-- API version base path: `/api/v1`
-- Public system endpoints: `GET /`, `GET /health`
-- Protected endpoints require `Authorization: Bearer <jwt>`
-- Payload formats:
-  - `application/json` for auth/profile reads
-  - `multipart/form-data` for media uploads
+- Base path: `/api/v1`
+- Health endpoints: `GET /`, `GET /health`
+- Protected APIs require `Authorization: Bearer <jwt>`
+- Upload APIs use `multipart/form-data`
 
-## Phase 3 Vertical Slice Endpoints
+## Authentication
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me` (protected)
 
-### Product Upload API
-`POST /api/v1/products` (protected, artisan role)
+## Artisan and Product APIs
+- `POST /artisans/create` (protected)
+- `GET /artisans/{id}`
+- `GET /artisans`
+- `GET /artisan/{id}/storefront`
+- `POST /products` (protected, artisan role)
+- `GET /products`
+- `GET /products/{id}`
 
-Multipart fields:
-- `title` (string, required)
-- `description` (string, optional)
-- `price` (number, required)
-- `category` (string, required)
-- `images` (file[], optional)
+`GET /products/{id}` now includes:
+- image list
+- artisan name
+- `related_reels[]` (video URL, caption, likes, views)
 
-Example response:
-```json
-{
-  "id": "d7f87600-5d5c-4b30-b2f3-c6a6d35cba1e",
-  "artisan_id": "904781fc-42e3-4ed5-b623-cacbc828a101",
-  "artisan_name": "Phase2 Artisan",
-  "title": "Handwoven Basket",
-  "description": "Natural fiber artisan basket",
-  "price": 59.99,
-  "category": "Home Decor",
-  "created_at": "2026-03-09T08:12:44.533039Z",
-  "images": [
+## Order APIs
+- `POST /orders` (protected)
+  - Body:
+    ```json
     {
-      "id": "8f3b8f16-6f93-4a8e-b349-4b11f9f9c5c2",
-      "image_url": "https://storage.local/craftbridge-local/products/9f63774f-8f70-4f18-aec3-332f5f7f8d8b.jpg"
+      "product_id": "<product-id>",
+      "quantity": 1
     }
-  ]
-}
-```
+    ```
+  - Response contains `status` values from:
+    - `pending`
+    - `confirmed`
+    - `shipped`
+    - `delivered`
 
-### Product Discovery APIs
-- `GET /api/v1/products`
-  - Used by discovery feed and marketplace cards.
-- `GET /api/v1/products/{id}`
-  - Used by product detail page.
+- `GET /orders/{id}` (protected)
+- `GET /users/{id}/orders` (protected)
 
-Both include `artisan_name` and image list for frontend rendering.
+## Reel APIs
+- `POST /reels/upload` (protected, artisan role)
+- `GET /reels/feed`
+- `POST /reels/{id}/like`
+- `POST /reels/{id}/view`
 
-### Storefront API
-`GET /api/v1/artisan/{id}/storefront`
+`Reel` response fields include:
+- `video_url`
+- `thumbnail_url`
+- `caption`
+- `likes`
+- `views`
 
-Optional query params:
-- `product_limit` (default `20`)
-- `reel_limit` (default `20`)
+## Feed Ranking
+`GET /reels/feed` uses ranking score:
 
-Response contains:
-- `artisan` profile
-- `products[]`
-- `reels[]`
+`score = (likes * 3) + (views * 1) + freshness_factor`
 
-### Reel Upload API
-`POST /api/v1/reels/upload` (protected, artisan role)
+Reels are sorted by score descending.
 
-Multipart fields:
-- `video` (file, required)
-- `product_id` (string, optional)
-- `caption` (string, optional)
+## Media Processing Notes
+Reel upload processing now performs:
+- video compression
+- resolution standardization
+- thumbnail generation
 
-### Reel Feed API
-`GET /api/v1/reels/feed`
+Stored paths:
+- videos: `/storage/videos/`
+- thumbnails: `/storage/thumbnails/`
+- images: `/storage/images/`
 
-Query params:
-- `limit` (default `20`)
-
-Example response item:
-```json
-{
-  "id": "11f5ef14-0b5c-4a1f-a2a8-ef9dc2d1218f",
-  "artisan_id": "904781fc-42e3-4ed5-b623-cacbc828a101",
-  "artisan_name": "Phase2 Artisan",
-  "product_id": "d7f87600-5d5c-4b30-b2f3-c6a6d35cba1e",
-  "video_url": "https://storage.local/craftbridge-local/reels/5de75762-6365-4420-9627-4f6d465ca04e.mp4",
-  "caption": "Basket weaving process",
-  "created_at": "2026-03-09T08:14:10.961025Z"
-}
-```
-
-## Authentication APIs
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `GET /api/v1/auth/me` (protected)
-
-## Artisan Profile APIs
-- `POST /api/v1/artisans/create` (protected)
-- `GET /api/v1/artisans/{id}`
-- `GET /api/v1/artisans`
-
-## Auth Flow
-1. `POST /api/v1/auth/login` returns `access_token`.
-2. Frontend stores token in client storage.
-3. Token is attached to protected upload routes.
-4. `GET /api/v1/auth/me` is used to resolve current login state.
-
-## Product Upload Vertical Flow
-1. Artisan logs in and creates artisan profile.
-2. Web upload form posts multipart request to `POST /api/v1/products`.
-3. API stores product + image URLs in PostgreSQL.
-4. Listing appears in:
-   - `GET /api/v1/products` discovery grid
-   - `GET /api/v1/artisan/{id}/storefront` artisan page
-   - `GET /api/v1/products/{id}` detail page
-
-## Reel Feed Vertical Flow
-1. Artisan uploads reel to `POST /api/v1/reels/upload`.
-2. API stores object URL and metadata.
-3. Web reels page requests `GET /api/v1/reels/feed` for vertical scrolling UI.
-
+## Product Purchase Flow
+1. User discovers product in `GET /products`.
+2. User opens product detail via `GET /products/{id}`.
+3. User places order with `POST /orders`.
+4. Order is persisted and retrievable via `GET /orders/{id}`.

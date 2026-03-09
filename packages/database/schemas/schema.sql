@@ -75,8 +75,8 @@ CREATE TABLE IF NOT EXISTS reels (
     storage_key TEXT UNIQUE NOT NULL,
     thumbnail_key TEXT,
     duration_seconds INTEGER NOT NULL CHECK (duration_seconds > 0),
-    view_count BIGINT NOT NULL DEFAULT 0,
-    like_count BIGINT NOT NULL DEFAULT 0,
+    views INTEGER NOT NULL DEFAULT 0,
+    likes INTEGER NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'processing'
         CHECK (status IN ('processing', 'published', 'blocked')),
     published_at TIMESTAMPTZ,
@@ -89,15 +89,12 @@ CREATE TABLE IF NOT EXISTS orders (
     order_number VARCHAR(32) UNIQUE NOT NULL,
     customer_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     artisan_id UUID NOT NULL REFERENCES artisans(id) ON DELETE RESTRICT,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending_payment'
+    status VARCHAR(20) NOT NULL DEFAULT 'pending'
         CHECK (status IN (
-            'pending_payment',
+            'pending',
             'confirmed',
-            'processing',
             'shipped',
-            'delivered',
-            'cancelled',
-            'refunded'
+            'delivered'
         )),
     subtotal NUMERIC(12,2) NOT NULL CHECK (subtotal >= 0),
     shipping_fee NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (shipping_fee >= 0),

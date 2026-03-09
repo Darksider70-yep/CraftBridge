@@ -14,5 +14,8 @@ class ReelResponse(BaseModel):
     artisan_name: str | None = None
     product_id: str | None
     video_url: str
+    thumbnail_url: str | None = None
     caption: str | None
+    likes: int = 0
+    views: int = 0
     created_at: datetime

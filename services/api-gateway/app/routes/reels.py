@@ -3,7 +3,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.controllers.reelController import reel_feed_controller, upload_reel_controller
+from app.controllers.reelController import (
+    like_reel_controller,
+    reel_feed_controller,
+    upload_reel_controller,
+    view_reel_controller,
+)
 from app.middleware.authMiddleware import require_artisan
 from app.models.user import User
 from app.schemas.reelSchema import ReelResponse, ReelUploadRequest
@@ -35,3 +40,13 @@ async def upload_reel(
 @router.get("/reels/feed", response_model=list[ReelResponse])
 def reel_feed(limit: int = 20, db: Session = Depends(get_db)) -> list[ReelResponse]:
     return reel_feed_controller(db=db, limit=limit)
+
+
+@router.post("/reels/{id}/like", response_model=ReelResponse)
+def like_reel(id: str, db: Session = Depends(get_db)) -> ReelResponse:
+    return like_reel_controller(db=db, reel_id=id)
+
+
+@router.post("/reels/{id}/view", response_model=ReelResponse)
+def view_reel(id: str, db: Session = Depends(get_db)) -> ReelResponse:
+    return view_reel_controller(db=db, reel_id=id)

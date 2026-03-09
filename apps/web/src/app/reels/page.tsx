@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { ReelPlayer } from "@/components/ReelPlayer";
-import { Reel, getReelsFeed } from "@/lib/api";
+import { Reel, getReelsFeed, likeReel, viewReel } from "@/lib/api";
 
 export default function ReelsPage() {
   const [reels, setReels] = useState<Reel[]>([]);
-  const [likedReels, setLikedReels] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,11 +18,40 @@ export default function ReelsPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const toggleLike = (reelId: string) => {
-    setLikedReels((current) => ({
-      ...current,
-      [reelId]: !current[reelId],
-    }));
+  const onLike = async (reelId: string) => {
+    setReels((current) =>
+      current.map((reel) =>
+        reel.id === reelId ? { ...reel, likes: reel.likes + 1 } : reel,
+      ),
+    );
+    try {
+      const updated = await likeReel(reelId);
+      setReels((current) =>
+        current.map((reel) => (reel.id === reelId ? updated : reel)),
+      );
+    } catch {
+      setReels((current) =>
+        current.map((reel) =>
+          reel.id === reelId ? { ...reel, likes: Math.max(reel.likes - 1, 0) } : reel,
+        ),
+      );
+    }
+  };
+
+  const onView = async (reelId: string) => {
+    setReels((current) =>
+      current.map((reel) =>
+        reel.id === reelId ? { ...reel, views: reel.views + 1 } : reel,
+      ),
+    );
+    try {
+      const updated = await viewReel(reelId);
+      setReels((current) =>
+        current.map((reel) => (reel.id === reelId ? updated : reel)),
+      );
+    } catch {
+      // Keep optimistic count if tracking endpoint fails.
+    }
   };
 
   if (isLoading) {
@@ -53,7 +81,7 @@ export default function ReelsPage() {
             className="snap-start rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-card"
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(0,460px)_1fr]">
-              <ReelPlayer reel={reel} />
+              <ReelPlayer reel={reel} onVisible={() => void onView(reel.id)} />
               <div className="flex flex-col gap-3">
                 <p className="text-sm text-slate">
                   Posted by <span className="font-semibold text-ink">{reel.artisan_name ?? "Artisan"}</span>
@@ -61,22 +89,22 @@ export default function ReelsPage() {
                 <p className="text-sm text-slate">
                   {reel.caption ?? "Traditional making process in motion."}
                 </p>
+                <div className="flex items-center gap-4 text-xs font-medium uppercase tracking-wide text-slate">
+                  <span>{reel.likes} likes</span>
+                  <span>{reel.views} views</span>
+                </div>
 
                 <button
                   type="button"
-                  onClick={() => toggleLike(reel.id)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    likedReels[reel.id]
-                      ? "bg-accent text-white"
-                      : "border border-slate-300 text-slate-700 hover:border-slate-400"
-                  }`}
+                  onClick={() => void onLike(reel.id)}
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
                 >
-                  {likedReels[reel.id] ? "Liked" : "Like"}
+                  Like
                 </button>
 
                 {reel.product_id ? (
                   <Link
-                    href={`/products/${reel.product_id}`}
+                    href={`/product/${reel.product_id}`}
                     className="inline-flex w-fit rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
                   >
                     Visit Product

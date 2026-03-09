@@ -17,7 +17,7 @@ export function ProductCard({ product, showDescription = false }: ProductCardPro
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/product/${product.id}`}
       className="group block overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card transition duration-200 hover:-translate-y-1"
     >
       <div className="aspect-square w-full overflow-hidden bg-slate-100">

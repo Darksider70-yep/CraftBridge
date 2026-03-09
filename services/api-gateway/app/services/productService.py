@@ -28,7 +28,7 @@ class ProductService:
 
         if images:
             for image in images:
-                image_url = await storage_client.upload_file(file=image, folder="products")
+                image_url = await storage_client.upload_image(file=image)
                 db.add(ProductImage(product_id=product.id, image_url=image_url))
 
         db.commit()
@@ -48,7 +48,11 @@ class ProductService:
     def get_product(db: Session, product_id: str) -> Product:
         product = (
             db.query(Product)
-            .options(joinedload(Product.images), joinedload(Product.artisan))
+            .options(
+                joinedload(Product.images),
+                joinedload(Product.artisan),
+                joinedload(Product.reels),
+            )
             .filter(Product.id == product_id)
             .first()
         )

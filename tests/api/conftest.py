@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -9,11 +10,13 @@ TESTS_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = TESTS_DIR.parents[1]
 SERVICE_DIR = PROJECT_ROOT / "services" / "api-gateway"
 TEST_DB_FILE = TESTS_DIR / "test_api_gateway.db"
+TEST_STORAGE_DIR = TESTS_DIR / "test_storage"
 
 os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB_FILE.as_posix()}"
 os.environ["JWT_SECRET"] = "test-jwt-secret-with-safe-length-32"
 os.environ["STORAGE_BUCKET"] = "test-bucket"
 os.environ["STORAGE_BASE_URL"] = "https://storage.test.local"
+os.environ["STORAGE_ROOT"] = str(TEST_STORAGE_DIR.resolve())
 
 if str(SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(SERVICE_DIR))
@@ -27,12 +30,16 @@ from core.config.database import engine  # noqa: E402
 def setup_database() -> None:
     if TEST_DB_FILE.exists():
         TEST_DB_FILE.unlink()
+    if TEST_STORAGE_DIR.exists():
+        shutil.rmtree(TEST_STORAGE_DIR)
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
     engine.dispose()
     if TEST_DB_FILE.exists():
         TEST_DB_FILE.unlink()
+    if TEST_STORAGE_DIR.exists():
+        shutil.rmtree(TEST_STORAGE_DIR)
 
 
 @pytest.fixture(autouse=True)

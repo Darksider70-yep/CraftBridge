@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.routes import register_routes
 from core.config.database import init_db
@@ -8,6 +11,7 @@ from core.logging.logger import configure_logging
 
 settings = get_settings()
 configure_logging()
+Path(settings.storage_root).mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
     title="CraftBridge API Gateway",
@@ -24,6 +28,7 @@ app.add_middleware(
 )
 
 register_routes(app)
+app.mount("/storage", StaticFiles(directory=settings.storage_root), name="storage")
 
 
 @app.on_event("startup")

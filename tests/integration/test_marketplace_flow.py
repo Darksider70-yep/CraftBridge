@@ -36,7 +36,7 @@ def test_product_upload_flow(client, artisan_headers) -> None:
     assert product["title"] == "Phase3 Product"
     assert product["artisan_name"] == "Phase3 Studio"
     assert len(product["images"]) == 1
-    assert "/products/" in product["images"][0]["image_url"]
+    assert "/images/" in product["images"][0]["image_url"]
 
 
 def test_storefront_retrieval_flow(client, artisan_headers) -> None:

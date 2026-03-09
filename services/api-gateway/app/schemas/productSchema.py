@@ -15,6 +15,15 @@ class ProductImageResponse(BaseModel):
     image_url: str
 
 
+class ProductRelatedReelResponse(BaseModel):
+    id: str
+    video_url: str
+    thumbnail_url: str | None = None
+    caption: str | None
+    likes: int = 0
+    views: int = 0
+
+
 class ProductResponse(BaseModel):
     id: str
     artisan_id: str
@@ -25,3 +34,4 @@ class ProductResponse(BaseModel):
     category: str
     created_at: datetime
     images: list[ProductImageResponse]
+    related_reels: list[ProductRelatedReelResponse] = Field(default_factory=list)

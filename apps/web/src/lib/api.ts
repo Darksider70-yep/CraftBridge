@@ -29,6 +29,15 @@ export interface ProductImage {
   image_url: string;
 }
 
+export interface RelatedReel {
+  id: string;
+  video_url: string;
+  thumbnail_url: string | null;
+  caption: string | null;
+  likes: number;
+  views: number;
+}
+
 export interface Product {
   id: string;
   artisan_id: string;
@@ -39,6 +48,7 @@ export interface Product {
   category: string;
   created_at: string;
   images: ProductImage[];
+  related_reels: RelatedReel[];
 }
 
 export interface Reel {
@@ -47,7 +57,10 @@ export interface Reel {
   artisan_name: string | null;
   product_id: string | null;
   video_url: string;
+  thumbnail_url: string | null;
   caption: string | null;
+  likes: number;
+  views: number;
   created_at: string;
 }
 
@@ -55,6 +68,20 @@ export interface Storefront {
   artisan: ArtisanProfile;
   products: Product[];
   reels: Reel[];
+}
+
+export interface CreateOrderInput {
+  product_id: string;
+  quantity: number;
+}
+
+export interface Order {
+  id: string;
+  buyer_id: string;
+  product_id: string;
+  quantity: number;
+  status: "pending" | "confirmed" | "shipped" | "delivered";
+  created_at: string;
 }
 
 const API_BASE_URL =
@@ -86,6 +113,10 @@ export async function getProducts(): Promise<Product[]> {
 export async function getProduct(productId: string): Promise<Product> {
   const response = await api.get<Product>(`/products/${productId}`);
   return response.data;
+}
+
+export async function getProductDetails(productId: string): Promise<Product> {
+  return getProduct(productId);
 }
 
 export async function uploadProduct(
@@ -124,6 +155,28 @@ export async function getStorefront(artisanId: string): Promise<Storefront> {
 export async function getReelsFeed(limit = 20): Promise<Reel[]> {
   const response = await api.get<Reel[]>("/reels/feed", {
     params: { limit },
+  });
+  return response.data;
+}
+
+export async function likeReel(reelId: string): Promise<Reel> {
+  const response = await api.post<Reel>(`/reels/${reelId}/like`);
+  return response.data;
+}
+
+export async function viewReel(reelId: string): Promise<Reel> {
+  const response = await api.post<Reel>(`/reels/${reelId}/view`);
+  return response.data;
+}
+
+export async function createOrder(
+  input: CreateOrderInput,
+  token: string,
+): Promise<Order> {
+  const response = await api.post<Order>("/orders", input, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
   return response.data;
 }
