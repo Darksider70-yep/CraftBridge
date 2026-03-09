@@ -96,3 +96,41 @@ Frontend API integration is centralized in:
 - `api-gateway` (FastAPI)
 - `postgres`
 - `redis`
+
+## 8. Phase 5 Artisan Mobile Application
+As of March 9, 2026, CraftBridge includes an artisan-only Expo mobile app.
+
+Location:
+- `apps/artisan-mobile`
+
+Mobile design priorities:
+- Large tap targets
+- Simple forms for low-tech users
+- Readable typography and high-contrast cards
+
+Implemented modules:
+- Navigation shell: `apps/artisan-mobile/app/App.tsx`
+- Screens:
+  - `HomeScreen` (dashboard summary + recent orders)
+  - `UploadProductScreen` (camera/gallery upload)
+  - `UploadReelScreen` (video upload + product linking + preview)
+  - `StorefrontScreen` (profile, products, reels)
+  - `SalesScreen` (revenue, order count, top product, recent orders)
+- API client: `apps/artisan-mobile/services/api.ts`
+- Offline queue:
+  - `apps/artisan-mobile/offline/queue/uploadQueue.ts`
+  - `apps/artisan-mobile/offline/sync/syncManager.ts`
+
+## 9. Phase 5 Dashboard and Sales APIs
+New protected artisan endpoints:
+- `GET /api/v1/artisan/dashboard`
+- `GET /api/v1/artisan/sales`
+
+Backend layering remains unchanged:
+- Routes -> Controllers -> Services -> Database
+
+Files:
+- `services/api-gateway/app/routes/dashboard.py`
+- `services/api-gateway/app/controllers/dashboardController.py`
+- `services/api-gateway/app/services/dashboardService.py`
+- `services/api-gateway/app/schemas/dashboardSchema.py`

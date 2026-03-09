@@ -2,7 +2,7 @@
 
 CraftBridge is an AI-powered craft marketplace platform connecting rural artisans with customers through intelligent storefront creation, short-form discovery, and fulfillment orchestration.
 
-This repository is currently in **Phase 1: Architecture & Documentation Setup**.
+This repository is currently in **Phase 5: Artisan Mobile Application and Sales Dashboard**.
 
 ## Features
 - AI Storefront Generator
@@ -28,6 +28,25 @@ Detailed architecture docs:
 - [API Reference](docs/api/api_reference.md)
 - [AI Model Docs](docs/ai-models/model_docs.md)
 - [Deployment Guide](docs/deployment/deployment_guide.md)
+
+## Artisan Mobile App Architecture
+`apps/artisan-mobile` is an Expo React Native app dedicated to artisan operations.
+
+Phase 5 mobile capabilities:
+- Bottom tab navigation: `Home`, `Upload Product`, `Upload Reel`, `Storefront`, `Sales`
+- Product upload with camera/gallery image capture (`expo-image-picker`)
+- Reel upload with optional product linking and preview playback
+- Storefront management view (profile, product grid, reel list)
+- Sales analytics view (revenue, order count, top product, recent orders)
+- Offline upload queue with AsyncStorage persistence and automatic retry on reconnect
+
+Mobile API client:
+- `apps/artisan-mobile/services/api.ts`
+- Base URL from `EXPO_PUBLIC_API_BASE_URL`
+
+Offline sync modules:
+- `apps/artisan-mobile/offline/queue/uploadQueue.ts`
+- `apps/artisan-mobile/offline/sync/syncManager.ts`
 
 ## Project Structure
 ```text
@@ -71,9 +90,9 @@ docker compose up --build
 ### 3. Reference Documentation
 Use the docs in `docs/` as the contract baseline before implementing business logic in later phases.
 
-## Phase 1 Deliverables Included
-- System architecture documentation with service boundaries and flow.
-- REST API contract documentation with request/response schemas.
-- AI model purpose/input/output documentation and recommendation training strategy.
-- Deployment guide for Docker Compose and Kubernetes topologies.
-- Initial relational database schema draft in `packages/database/schemas/schema.sql`.
+## Phase 5 Deliverables Included
+- Marketplace flows, reels discovery, and order engine.
+- FFmpeg-backed local media processing for uploads.
+- Artisan mobile app screens for product/reel uploads, storefront, and sales.
+- Dashboard and sales APIs for artisan analytics.
+- Integration coverage for artisan dashboard and sales calculations.

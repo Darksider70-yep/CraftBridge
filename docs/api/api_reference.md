@@ -1,4 +1,4 @@
-# CraftBridge API Reference (Phase 4)
+# CraftBridge API Reference (Phase 5)
 
 ## Base Conventions
 - Base path: `/api/v1`
@@ -63,6 +63,36 @@
 
 Reels are sorted by score descending.
 
+## Artisan Dashboard APIs (Phase 5)
+- `GET /artisan/dashboard` (protected, artisan role)
+- `GET /artisan/sales` (protected, artisan role)
+
+### `GET /artisan/dashboard`
+Purpose:
+- Home screen summary for the artisan mobile app.
+
+Response includes:
+- `artisan_id`
+- `artisan_name`
+- `total_products`
+- `total_orders`
+- `total_sales`
+- `recent_orders[]` with product title, quantity, status, and order amount
+
+### `GET /artisan/sales`
+Purpose:
+- Sales analytics for the artisan mobile app.
+
+Response includes:
+- `total_revenue`
+- `orders_count`
+- `top_selling_product` (`product_id`, `title`, `units_sold`, `revenue`)
+- `recent_orders[]`
+
+Sales query logic:
+- Total revenue is aggregated as `SUM(products.price * orders.quantity)` for the artisan's products.
+- Top selling product is ranked by total units sold, then revenue.
+
 ## Media Processing Notes
 Reel upload processing now performs:
 - video compression
@@ -79,3 +109,10 @@ Stored paths:
 2. User opens product detail via `GET /products/{id}`.
 3. User places order with `POST /orders`.
 4. Order is persisted and retrievable via `GET /orders/{id}`.
+
+## Mobile App API Client
+Primary client for the artisan mobile app:
+- `apps/artisan-mobile/services/api.ts`
+
+Environment variable:
+- `EXPO_PUBLIC_API_BASE_URL` (defaults to `http://localhost:8000/api/v1`)

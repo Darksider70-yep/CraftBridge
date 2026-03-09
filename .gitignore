@@ -4,6 +4,8 @@ apps/web/node_modules/
 .next/
 apps/web/.next/
 out/
+.expo/
+apps/artisan-mobile/.expo/
 
 # Python
 __pycache__/
