@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { ResizeMode, Video } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
 import NetInfo from "@react-native-community/netinfo";
 
 import Card from "../components/Card";
@@ -26,6 +26,15 @@ import { QueuedReelUpload, enqueueReelUpload } from "../offline/queue/uploadQueu
 
 interface UploadReelScreenProps {
   session: ArtisanSession;
+}
+
+function ReelPreview({ uri }: { uri: string }) {
+  const player = useVideoPlayer({ uri }, (createdPlayer) => {
+    createdPlayer.loop = true;
+    createdPlayer.play();
+  });
+
+  return <VideoView player={player} nativeControls style={styles.video} />;
 }
 
 export default function UploadReelScreen({ session }: UploadReelScreenProps) {
@@ -206,26 +215,14 @@ export default function UploadReelScreen({ session }: UploadReelScreenProps) {
         {videoUri ? (
           <View style={styles.previewBlock}>
             <Text style={styles.previewLabel}>Selected Preview</Text>
-            <Video
-              source={{ uri: videoUri }}
-              useNativeControls
-              resizeMode={ResizeMode.COVER}
-              style={styles.video}
-              isLooping
-            />
+            <ReelPreview uri={videoUri} />
           </View>
         ) : null}
 
         {uploadedPreviewUrl ? (
           <View style={styles.previewBlock}>
             <Text style={styles.previewLabel}>Uploaded Preview</Text>
-            <Video
-              source={{ uri: uploadedPreviewUrl }}
-              useNativeControls
-              resizeMode={ResizeMode.COVER}
-              style={styles.video}
-              isLooping
-            />
+            <ReelPreview uri={uploadedPreviewUrl} />
           </View>
         ) : null}
 

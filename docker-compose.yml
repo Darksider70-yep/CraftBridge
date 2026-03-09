@@ -10,10 +10,10 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - "8081:8081"
-      - "19000:19000"
-      - "19001:19001"
-      - "19002:19002"
+      - "${ARTISAN_MOBILE_METRO_PORT:-18081}:8081"
+      - "${ARTISAN_MOBILE_WS_PORT:-19100}:19000"
+      - "${ARTISAN_MOBILE_DEVTOOLS_PORT:-19101}:19001"
+      - "${ARTISAN_MOBILE_INSPECTOR_PORT:-19102}:19002"
     environment:
       EXPO_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
       CHOKIDAR_USEPOLLING: "true"
