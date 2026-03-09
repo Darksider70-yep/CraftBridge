@@ -1,6 +1,32 @@
 version: "3.9"
 
 services:
+  artisan-mobile:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/artisan-mobile.Dockerfile
+    container_name: craftbridge-artisan-mobile
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    environment:
+      EXPO_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+      CHOKIDAR_USEPOLLING: "true"
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: 0.0.0.0
+      REACT_NATIVE_PACKAGER_HOSTNAME: host.docker.internal
+    volumes:
+      - ./:/app
+      - artisan_mobile_node_modules:/app/apps/artisan-mobile/node_modules
+    working_dir: /app/apps/artisan-mobile
+    command: npm run start:docker
+    depends_on:
+      - api-gateway
+
   web:
     build:
       context: .
@@ -55,3 +81,4 @@ services:
 
 volumes:
   postgres_data:
+  artisan_mobile_node_modules:

@@ -87,6 +87,15 @@ infrastructure/
 docker compose up --build
 ```
 
+### 3. Run Artisan Mobile in Docker with Expo QR
+```bash
+docker compose up --build artisan-mobile
+```
+
+Container logs will include an Expo Go URL and an ASCII QR block:
+- `=== Expo Go QR (Docker) ===`
+- scan that QR directly from terminal logs
+
 ### 3. Reference Documentation
 Use the docs in `docs/` as the contract baseline before implementing business logic in later phases.
 
