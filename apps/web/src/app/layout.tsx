@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope, Plus_Jakarta_Sans } from "next/font/google";
 
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 import "@/styles/globals.css";
 
@@ -29,11 +30,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
-      <body className="font-[var(--font-body)] text-ink antialiased">
-        <Navbar />
-        <main className="mx-auto min-h-[calc(100vh-73px)] w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          {children}
-        </main>
+      <body className="font-[var(--font-body)] text-ink antialiased bg-surface scroll-smooth">
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-1 w-full">
+            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+              {children}
+            </div>
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );

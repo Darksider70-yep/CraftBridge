@@ -69,18 +69,38 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-slate">Loading product...</p>;
+    return (
+      <section className="space-y-8">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="h-96 rounded-card bg-slate-200 animate-pulse" />
+          <div className="h-96 rounded-card bg-slate-200 animate-pulse" />
+        </div>
+      </section>
+    );
   }
 
   if (!product || error) {
-    return <p className="text-sm text-red-600">{error ?? "Product not found."}</p>;
+    return (
+      <section className="space-y-8">
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <p className="text-lg font-semibold text-ink mb-2">Product not found</p>
+          <p className="text-sm text-slate mb-6">{error ?? "This product doesn't exist."}</p>
+          <Link href="/discover" className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primaryDark transition">
+            Back to Browse
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   return (
     <section className="space-y-8">
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-3">
-          <div className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white shadow-card">
+          <div className="overflow-hidden rounded-card border border-slate-200 bg-white shadow-soft hover:shadow-card transition-shadow">
             {primaryImage ? (
               <img
                 src={primaryImage.image_url}
@@ -100,8 +120,8 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   key={image.id}
                   type="button"
                   onClick={() => setSelectedImage(index)}
-                  className={`overflow-hidden rounded-lg border ${
-                    selectedImage == index ? "border-accent" : "border-slate-200"
+                  className={`overflow-hidden rounded-lg border transition ${
+                    selectedImage === index ? "border-primary border-2 ring-2 ring-primary/30" : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
                   <img
@@ -115,15 +135,15 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
           ) : null}
         </div>
 
-        <article className="rounded-[1.25rem] border border-slate-200 bg-white p-6 shadow-card">
-          <p className="text-sm font-semibold uppercase tracking-wide text-accent">Product</p>
+        <article className="rounded-card border border-slate-200 bg-white p-8 shadow-soft">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">Product</p>
           <h1 className="mt-1 font-[var(--font-heading)] text-3xl font-bold text-ink">
             {product.title}
           </h1>
           <p className="mt-2 text-sm text-slate">
             by <span className="font-semibold text-ink">{product.artisan_name ?? "Artisan"}</span>
           </p>
-          <p className="mt-4 text-2xl font-bold text-accent">
+          <p className="mt-4 text-3xl font-bold text-primary">
             {currencyFormatter.format(product.price)}
           </p>
           <p className="mt-4 text-sm text-slate">
@@ -149,7 +169,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             type="button"
             onClick={() => void onBuyNow()}
             disabled={isCreatingOrder}
-            className="mt-5 rounded-full bg-ink px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+            className="mt-6 w-full rounded-lg bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primaryDark disabled:opacity-60 shadow-soft hover:shadow-cardHover"
           >
             {isCreatingOrder ? "Placing Order..." : "Buy Now"}
           </button>
@@ -160,18 +180,18 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             <p className="mt-2 text-sm text-slate-700">{orderMessage}</p>
           ) : null}
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-col gap-3">
             <Link
               href={`/artisan/${product.artisan_id}`}
-              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-lg border border-primary text-primary px-4 py-2 text-sm font-semibold hover:bg-primary/5 transition text-center"
             >
-              Visit Artisan Storefront
+              Visit Artisan Store
             </Link>
             <Link
               href="/discover"
-              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-lg border border-slate-200 text-slate px-4 py-2 text-sm font-semibold hover:bg-slate-50 transition text-center"
             >
-              Back to Discover
+              ← Back to Browse
             </Link>
           </div>
         </article>

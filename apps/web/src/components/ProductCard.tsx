@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 import { Product } from "@/lib/api";
 
@@ -16,39 +17,117 @@ export function ProductCard({ product, showDescription = false }: ProductCardPro
   const imageUrl = product.images[0]?.image_url;
 
   return (
-    <Link
-      href={`/product/${product.id}`}
-      className="group block overflow-hidden rounded-card border border-slate-200/80 bg-white shadow-card transition duration-200 hover:-translate-y-1"
+    <motion.div
+      whileHover={{ y: -6, transition: { duration: 0.3 } }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <div className="aspect-square w-full overflow-hidden bg-slate-100">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={product.title}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-sm text-slate">
-            No image
+      <Link href={`/product/${product.id}`}>
+        <motion.div className="group block overflow-hidden rounded-card border border-slate-200/40 bg-white hover:border-primary/30 shadow-soft hover:shadow-cardHover transition-all duration-300 cursor-pointer h-full flex flex-col">
+          {/* Image Container with Overlay */}
+          <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
+            {imageUrl ? (
+              <>
+                <motion.img
+                  src={imageUrl}
+                  alt={product.title}
+                  className="h-full w-full object-cover"
+                  whileHover={{ scale: 1.08 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
+                {/* Overlay gradient on hover */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </>
+            ) : (
+              <div className="flex h-full items-center justify-center bg-craft-gradient text-sm text-slate font-medium">
+                <span>No image</span>
+              </div>
+            )}
+            
+            {/* Quick View Badge */}
+            <motion.button
+              onClick={(e) => {
+                e.preventDefault();
+              }}
+              className="absolute top-3 right-3 px-3 py-1.5 bg-primary/95 text-white text-xs font-semibold rounded-full shadow-soft hover:bg-primaryDark transition-all duration-200 cursor-pointer"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileHover={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              View
+            </motion.button>
+
+            {/* In-Stock Indicator */}
+            <motion.div
+              className="absolute bottom-3 left-3 px-2.5 py-1 bg-white/95 backdrop-blur-sm rounded-full text-xs font-semibold text-success"
+              initial={{ opacity: 0 }}
+              whileHover={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              In Stock
+            </motion.div>
           </div>
-        )}
-      </div>
-      <div className="space-y-2 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="line-clamp-2 text-sm font-semibold text-ink sm:text-base">
-            {product.title}
-          </h3>
-          <span className="shrink-0 text-sm font-bold text-accent">
-            {currencyFormatter.format(product.price)}
-          </span>
-        </div>
-        {showDescription && product.description ? (
-          <p className="line-clamp-2 text-sm text-slate">{product.description}</p>
-        ) : null}
-        <p className="text-xs font-medium uppercase tracking-wide text-slate">
-          {product.artisan_name ?? "Artisan"}
-        </p>
-      </div>
-    </Link>
+
+          {/* Content Section */}
+          <div className="flex flex-col flex-1 space-y-3 p-4 sm:p-5">
+            {/* Title and Price - Flex row layout */}
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="line-clamp-2 text-sm font-semibold text-ink group-hover:text-primary transition-colors duration-200 sm:text-base">
+                {product.title}
+              </h3>
+              <motion.span
+                className="shrink-0 text-sm font-bold text-primary whitespace-nowrap"
+                layoutId={`price-${product.id}`}
+              >
+                {currencyFormatter.format(product.price)}
+              </motion.span>
+            </div>
+
+            {/* Description - Optional */}
+            {showDescription && product.description ? (
+              <p className="line-clamp-2 text-xs sm:text-sm text-slate leading-relaxed">
+                {product.description}
+              </p>
+            ) : null}
+
+            {/* Rating and Artisan Info - Footer */}
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200/50">
+              {/* Artisan */}
+              <div className="flex items-center gap-2 min-w-0">
+                <motion.div
+                  className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  whileHover={{ scale: 1.15 }}
+                >
+                  {(product.artisan_name?.[0] || "A").toUpperCase()}
+                </motion.div>
+                <p className="text-xs font-medium text-slate truncate">
+                  {product.artisan_name ?? "Artisan"}
+                </p>
+              </div>
+
+              {/* Rating Stars (Placeholder) */}
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <motion.span
+                    key={i}
+                    className={`text-xs ${i < 4 ? "text-warning" : "text-slate-300"}`}
+                    initial={{ scale: 0 }}
+                    whileInView={{ scale: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    ★
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </Link>
+    </motion.div>
   );
 }

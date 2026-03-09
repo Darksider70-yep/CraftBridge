@@ -10,20 +10,44 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        surface: "#f8fafc",
-        ink: "#0f172a",
-        slate: "#475569",
-        accent: "#0f766e",
-        accentSoft: "#ccfbf1",
+        // Craft-inspired palette
+        primary: "#c75f47", // Terracotta / clay tone
+        primaryLight: "#dfa385",
+        primaryDark: "#a34a34",
+        
+        secondary: "#e8dcc8", // Warm beige / sand
+        secondaryLight: "#f5eee0",
+        secondaryDark: "#d4c5b0",
+        
+        accent: "#1f3447", // Deep indigo
+        accentLight: "#4a5f7a",
+        accentLighter: "#f0f4f8",
+        
+        // Neutral palette
+        surface: "#fafaf9",
+        ink: "#1a1a1a",
+        slate: "#6b7280",
+        
+        // Semantic colors
+        success: "#10b981",
+        warning: "#f59e0b",
+        error: "#ef4444",
       },
       boxShadow: {
-        card: "0 12px 30px -20px rgba(15, 23, 42, 0.35)",
+        card: "0 4px 12px rgba(0, 0, 0, 0.08)",
+        cardHover: "0 12px 32px rgba(199, 95, 71, 0.12)",
+        soft: "0 2px 8px rgba(0, 0, 0, 0.06)",
       },
       borderRadius: {
-        card: "1rem",
+        card: "1.25rem",
       },
       backgroundImage: {
-        "grain-gradient": "radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 38%), radial-gradient(circle at bottom right, rgba(14, 116, 144, 0.14), transparent 42%)",
+        "craft-gradient": "linear-gradient(135deg, rgba(199, 95, 71, 0.05) 0%, rgba(232, 220, 200, 0.05) 100%)",
+        "hero-gradient": "linear-gradient(135deg, #c75f47 0%, #a34a34 100%)",
+        "accent-gradient": "linear-gradient(135deg, #1f3447 0%, #4a5f7a 100%)",
+      },
+      spacing: {
+        full: "100%",
       },
     },
   },
