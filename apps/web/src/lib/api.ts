@@ -13,6 +13,12 @@ export interface LoginResponse {
   user: UserProfile;
 }
 
+export interface RegisterInput {
+  email: string;
+  password: string;
+  role: "buyer" | "artisan" | "admin";
+}
+
 export interface ArtisanProfile {
   id: string;
   user_id: string;
@@ -188,6 +194,11 @@ export async function getArtisans(): Promise<ArtisanProfile[]> {
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const response = await api.post<LoginResponse>("/auth/login", { email, password });
+  return response.data;
+}
+
+export async function registerUser(input: RegisterInput): Promise<UserProfile> {
+  const response = await api.post<UserProfile>("/auth/register", input);
   return response.data;
 }
 

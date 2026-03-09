@@ -1,6 +1,6 @@
 from collections.abc import Generator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.models.base import Base
@@ -42,6 +42,31 @@ def init_db() -> None:
     from app.models import artisan, order, product, product_image, reel, user  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    _apply_runtime_migrations()
+
+
+def _apply_runtime_migrations() -> None:
+    inspector = inspect(engine)
+    table_names = set(inspector.get_table_names())
+    if "reels" not in table_names:
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("reels")}
+    statements: list[str] = []
+
+    if "thumbnail_url" not in existing_columns:
+        statements.append("ALTER TABLE reels ADD COLUMN thumbnail_url VARCHAR(500)")
+    if "likes" not in existing_columns:
+        statements.append("ALTER TABLE reels ADD COLUMN likes INTEGER NOT NULL DEFAULT 0")
+    if "views" not in existing_columns:
+        statements.append("ALTER TABLE reels ADD COLUMN views INTEGER NOT NULL DEFAULT 0")
+
+    if not statements:
+        return
+
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
 
 
 def get_db() -> Generator[Session, None, None]:

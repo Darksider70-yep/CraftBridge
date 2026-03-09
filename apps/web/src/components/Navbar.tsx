@@ -59,12 +59,20 @@ export function Navbar() {
               Logout
             </button>
           ) : (
-            <Link
-              href="/login"
-              className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-            >
-              Login
-            </Link>
+            <>
+              <Link
+                href="/register"
+                className="hidden rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 sm:inline-flex"
+              >
+                Register
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Login
+              </Link>
+            </>
           )}
         </div>
       </div>
