@@ -28,7 +28,7 @@ services:
       DATABASE_URL: postgresql+psycopg2://craftbridge:craftbridge@postgres:5432/craftbridge
       JWT_SECRET: craftbridge-dev-secret
       STORAGE_BUCKET: craftbridge-local
-      STORAGE_BASE_URL: https://storage.local
+      STORAGE_BASE_URL: http://localhost:8000/storage
     depends_on:
       - postgres
       - redis
