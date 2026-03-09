@@ -1,15 +1,32 @@
 const { spawn } = require("node:child_process");
+const fs = require("node:fs");
 const http = require("node:http");
 const readline = require("node:readline");
 const qrcode = require("qrcode-terminal");
 
 const metroPort = process.env.EXPO_METRO_PORT || "8081";
+const requestedMode = (
+  process.env.EXPO_DOCKER_START_MODE ||
+  process.env.EXPO_START_MODE ||
+  "lan"
+).toLowerCase();
+const expoMode = ["lan", "tunnel", "localhost"].includes(requestedMode)
+  ? requestedMode
+  : "lan";
+const isDockerRuntime =
+  process.env.EXPO_DOCKER_QR === "1" ||
+  process.env.RUNNING_IN_DOCKER === "true" ||
+  fs.existsSync("/.dockerenv");
+
+console.log(
+  `[start-docker] Launching Expo with --${expoMode} on port ${metroPort}`,
+);
 const expoProcess = spawn(
   "npx",
   [
     "expo",
     "start",
-    "--tunnel",
+    `--${expoMode}`,
     "--port",
     metroPort,
     "--clear",
@@ -25,11 +42,12 @@ let qrPrinted = false;
 let manifestPollStarted = false;
 
 function maybePrintQr(line) {
-  if (qrPrinted) {
+  if (!isDockerRuntime || qrPrinted) {
     return;
   }
 
-  const match = line.match(/exp:\/\/[^\s]+/);
+  const normalizedLine = line.replace(/\u001b\[[0-9;]*m/g, "");
+  const match = normalizedLine.match(/exp:\/\/[^\s]+/);
   if (!match) {
     return;
   }
@@ -44,7 +62,7 @@ function maybePrintQr(line) {
 }
 
 function printQrFromHostUri(hostUri) {
-  if (qrPrinted || !hostUri) {
+  if (!isDockerRuntime || qrPrinted || !hostUri) {
     return;
   }
   const expoUrl = `exp://${hostUri}`;
@@ -56,7 +74,7 @@ function printQrFromHostUri(hostUri) {
 }
 
 function pollManifestForQr() {
-  if (manifestPollStarted || qrPrinted) {
+  if (!isDockerRuntime || manifestPollStarted || qrPrinted) {
     return;
   }
   manifestPollStarted = true;
@@ -89,7 +107,12 @@ function pollManifestForQr() {
               clearInterval(interval);
             }
           } catch {
-            // Ignore until manifest becomes available.
+            const hostUriMatch = raw.match(/"hostUri"\s*:\s*"([^"]+)"/);
+            const hostUri = hostUriMatch?.[1];
+            if (hostUri) {
+              printQrFromHostUri(hostUri);
+              clearInterval(interval);
+            }
           }
         });
       },
@@ -108,7 +131,10 @@ const stdoutReader = readline.createInterface({ input: expoProcess.stdout });
 stdoutReader.on("line", (line) => {
   console.log(line);
   maybePrintQr(line);
-  if (line.includes("Logs for your project will appear below.")) {
+  if (
+    line.includes("Logs for your project will appear below.") ||
+    line.includes("Starting Metro Bundler")
+  ) {
     pollManifestForQr();
   }
 });
