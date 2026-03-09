@@ -6,6 +6,7 @@ apps/web/.next/
 out/
 .expo/
 apps/artisan-mobile/.expo/
+*.tsbuildinfo
 
 # Python
 __pycache__/

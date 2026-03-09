@@ -6,16 +6,82 @@ import { useEffect, useState } from "react";
 import { ReelPlayer } from "@/components/ReelPlayer";
 import { Reel, getReelsFeed, likeReel, viewReel } from "@/lib/api";
 
+const REFRESH_INTERVAL_MS = 10_000;
+
 export default function ReelsPage() {
   const [reels, setReels] = useState<Reel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getReelsFeed(30)
-      .then((data) => setReels(data))
-      .catch(() => setError("Unable to load reels feed."))
-      .finally(() => setIsLoading(false));
+    let active = true;
+
+    const load = async () => {
+      try {
+        const data = await getReelsFeed(30);
+        if (!active) {
+          return;
+        }
+        setReels(data);
+        setError(null);
+      } catch {
+        if (!active) {
+          return;
+        }
+        setError("Unable to load reels feed.");
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const refresh = async () => {
+      try {
+        const data = await getReelsFeed(30);
+        if (!active) {
+          return;
+        }
+        setReels(data);
+        setError(null);
+      } catch {
+        // Keep existing feed on background refresh failures.
+      }
+    };
+
+    const onFocusOrVisible = () => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+      void refresh();
+    };
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+      void refresh();
+    }, REFRESH_INTERVAL_MS);
+
+    window.addEventListener("focus", onFocusOrVisible);
+    document.addEventListener("visibilitychange", onFocusOrVisible);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocusOrVisible);
+      document.removeEventListener("visibilitychange", onFocusOrVisible);
+    };
   }, []);
 
   const onLike = async (reelId: string) => {

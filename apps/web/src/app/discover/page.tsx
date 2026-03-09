@@ -8,6 +8,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { getProducts, Product } from "@/lib/api";
 
 const PAGE_SIZE = 8;
+const REFRESH_INTERVAL_MS = 10_000;
 
 export default function DiscoverPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -18,16 +19,74 @@ export default function DiscoverPage() {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    getProducts()
-      .then((data) => {
+    let active = true;
+
+    const load = async () => {
+      try {
+        const data = await getProducts();
+        if (!active) {
+          return;
+        }
         setProducts(data);
-      })
-      .catch(() => {
+        setError(null);
+      } catch {
+        if (!active) {
+          return;
+        }
         setError("Unable to load discovery products right now.");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const refresh = async () => {
+      try {
+        const data = await getProducts();
+        if (!active) {
+          return;
+        }
+        setProducts(data);
+        setError(null);
+      } catch {
+        // Keep existing content on background refresh failures.
+      }
+    };
+
+    const onFocusOrVisible = () => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+      void refresh();
+    };
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+      void refresh();
+    }, REFRESH_INTERVAL_MS);
+
+    window.addEventListener("focus", onFocusOrVisible);
+    document.addEventListener("visibilitychange", onFocusOrVisible);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocusOrVisible);
+      document.removeEventListener("visibilitychange", onFocusOrVisible);
+    };
   }, []);
 
   useEffect(() => {

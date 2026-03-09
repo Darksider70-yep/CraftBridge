@@ -77,7 +77,7 @@ export default function UploadReelScreen({ session }: UploadReelScreenProps) {
 
   const pickVideo = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      mediaTypes: ["videos"],
       quality: 0.75,
     });
     if (result.canceled || !result.assets[0]) {
@@ -100,7 +100,7 @@ export default function UploadReelScreen({ session }: UploadReelScreenProps) {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      mediaTypes: ["videos"],
       videoMaxDuration: 45,
       quality: 0.75,
     });

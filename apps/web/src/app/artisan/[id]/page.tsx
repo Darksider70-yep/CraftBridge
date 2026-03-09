@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { getStorefront, Storefront } from "@/lib/api";
 
+const REFRESH_INTERVAL_MS = 10_000;
+
 interface ArtisanStorefrontPageProps {
   params: {
     id: string;
@@ -17,10 +19,74 @@ export default function ArtisanStorefrontPage({ params }: ArtisanStorefrontPageP
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getStorefront(params.id)
-      .then((data) => setStorefront(data))
-      .catch(() => setError("Unable to load this storefront."))
-      .finally(() => setIsLoading(false));
+    let active = true;
+
+    const load = async () => {
+      try {
+        const data = await getStorefront(params.id);
+        if (!active) {
+          return;
+        }
+        setStorefront(data);
+        setError(null);
+      } catch {
+        if (!active) {
+          return;
+        }
+        setError("Unable to load this storefront.");
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, [params.id]);
+
+  useEffect(() => {
+    let active = true;
+
+    const refresh = async () => {
+      try {
+        const data = await getStorefront(params.id);
+        if (!active) {
+          return;
+        }
+        setStorefront(data);
+        setError(null);
+      } catch {
+        // Keep existing storefront content on background refresh failures.
+      }
+    };
+
+    const onFocusOrVisible = () => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+      void refresh();
+    };
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+      void refresh();
+    }, REFRESH_INTERVAL_MS);
+
+    window.addEventListener("focus", onFocusOrVisible);
+    document.addEventListener("visibilitychange", onFocusOrVisible);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocusOrVisible);
+      document.removeEventListener("visibilitychange", onFocusOrVisible);
+    };
   }, [params.id]);
 
   if (isLoading) {

@@ -4,6 +4,8 @@ node_modules
 **/node_modules
 .next
 **/.next
+.expo
+**/.expo
 __pycache__
 **/__pycache__
 .pytest_cache
