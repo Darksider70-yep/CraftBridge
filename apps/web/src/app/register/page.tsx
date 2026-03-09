@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 export default function RegisterPage() {
   const router = useRouter();
   const { login, isAuthenticated } = useAuth();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"buyer" | "artisan">("buyer");
@@ -22,7 +24,7 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      await registerUser({ email, password, role });
+      await registerUser({ email, password, first_name: firstName, last_name: lastName, role });
       await login({ email, password });
       router.push(role == "artisan" ? "/upload" : "/discover");
     } catch {
@@ -58,6 +60,29 @@ export default function RegisterPage() {
       </h1>
 
       <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-2 gap-4">
+          <label className="block text-sm font-medium text-ink">
+            First Name
+            <input
+              type="text"
+              required
+              value={firstName}
+              onChange={(event) => setFirstName(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-accent"
+            />
+          </label>
+          <label className="block text-sm font-medium text-ink">
+            Last Name
+            <input
+              type="text"
+              required
+              value={lastName}
+              onChange={(event) => setLastName(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-accent"
+            />
+          </label>
+        </div>
+
         <label className="block text-sm font-medium text-ink">
           Email
           <input
@@ -113,4 +138,3 @@ export default function RegisterPage() {
     </section>
   );
 }
-

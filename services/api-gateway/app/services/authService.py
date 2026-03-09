@@ -28,6 +28,8 @@ class AuthService:
         user = User(
             email=payload.email.lower(),
             password_hash=AuthService._hash_password(payload.password),
+            first_name=payload.first_name,
+            last_name=payload.last_name,
             role=payload.role,
         )
         db.add(user)
@@ -50,6 +52,8 @@ class AuthService:
             user=UserResponse(
                 id=user.id,
                 email=user.email,
+                first_name=user.first_name,
+                last_name=user.last_name,
                 role=user.role,
                 created_at=user.created_at,
             ),

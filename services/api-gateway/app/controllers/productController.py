@@ -1,10 +1,12 @@
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.artisan import Artisan
 from app.models.product import Product
+from app.models.user import User
 from app.schemas.productSchema import (
     ProductCreateRequest,
+    ProductUpdateRequest,
     ProductImageResponse,
     ProductRelatedReelResponse,
     ProductResponse,
@@ -63,3 +65,34 @@ def list_products_controller(db: Session) -> list[ProductResponse]:
 def get_product_controller(db: Session, product_id: str) -> ProductResponse:
     product = ProductService.get_product(db=db, product_id=product_id)
     return _product_response(product, include_related_reels=True)
+
+
+async def update_product_controller(
+    db: Session,
+    product_id: str,
+    payload: ProductUpdateRequest,
+    current_user: User,
+) -> ProductResponse:
+    product = ProductService.get_product(db=db, product_id=product_id)
+    if product.artisan.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to update this product.",
+        )
+
+    product = ProductService.update_product(db=db, product_id=product_id, payload=payload)
+    return _product_response(product)
+
+
+async def delete_product_controller(
+    db: Session,
+    product_id: str,
+    current_user: User,
+) -> None:
+    product = ProductService.get_product(db=db, product_id=product_id)
+    if product.artisan.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to delete this product.",
+        )
+    ProductService.delete_product(db=db, product_id=product_id)

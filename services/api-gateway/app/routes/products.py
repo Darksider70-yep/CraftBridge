@@ -1,16 +1,22 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+from fastapi import APIRouter, Body, Depends, File, Form, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.controllers.productController import (
     create_product_controller,
+    delete_product_controller,
     get_product_controller,
     list_products_controller,
+    update_product_controller,
 )
 from app.middleware.authMiddleware import require_artisan
 from app.models.user import User
-from app.schemas.productSchema import ProductCreateRequest, ProductResponse
+from app.schemas.productSchema import (
+    ProductCreateRequest,
+    ProductResponse,
+    ProductUpdateRequest,
+)
 from app.services.artisanService import ArtisanService
 from core.config.database import get_db
 
@@ -59,3 +65,24 @@ def list_products(db: Session = Depends(get_db)) -> list[ProductResponse]:
 @router.get("/products/{id}", response_model=ProductResponse)
 def get_product(id: str, db: Session = Depends(get_db)) -> ProductResponse:
     return get_product_controller(db=db, product_id=id)
+
+
+@router.put("/products/{id}", response_model=ProductResponse)
+async def update_product(
+    id: str,
+    payload: Annotated[ProductUpdateRequest, Body()],
+    current_user: User = Depends(require_artisan),
+    db: Session = Depends(get_db),
+) -> ProductResponse:
+    return await update_product_controller(
+        db=db, product_id=id, payload=payload, current_user=current_user
+    )
+
+
+@router.delete("/products/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(
+    id: str,
+    current_user: User = Depends(require_artisan),
+    db: Session = Depends(get_db),
+) -> None:
+    await delete_product_controller(db=db, product_id=id, current_user=current_user)

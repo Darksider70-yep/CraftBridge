@@ -27,7 +27,6 @@ function formatCurrency(amount: number): string {
 }
 
 export default function HomeScreen({ session }: HomeScreenProps) {
-  const [draftToken, setDraftToken] = useState("");
   const [dashboard, setDashboard] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -55,17 +54,6 @@ export default function HomeScreen({ session }: HomeScreenProps) {
     loadDashboard();
   }, [loadDashboard]);
 
-  const saveToken = async () => {
-    const cleaned = draftToken.trim();
-    if (!cleaned) {
-      setMessage("Paste your artisan access token.");
-      return;
-    }
-    await session.setAuthToken(cleaned);
-    setDraftToken("");
-    setMessage("Token saved on device.");
-  };
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Card>
@@ -73,18 +61,9 @@ export default function HomeScreen({ session }: HomeScreenProps) {
         <Text style={styles.subtitle}>Track products, orders, and revenue in one place.</Text>
 
         {!session.authToken ? (
-          <>
-            <TextInput
-              style={styles.tokenInput}
-              placeholder="Paste access token"
-              value={draftToken}
-              onChangeText={setDraftToken}
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholderTextColor="#8C7A66"
-            />
-            <PrimaryButton title="Save Token" onPress={saveToken} />
-          </>
+          <View>
+            <Text style={styles.mutedText}>Please log in to continue.</Text>
+          </View>
         ) : (
           <View style={styles.actions}>
             <PrimaryButton title="Refresh Dashboard" onPress={loadDashboard} loading={loading} />

@@ -26,8 +26,8 @@ class Settings:
 @lru_cache
 def get_settings() -> Settings:
     return Settings(
-        database_url=os.getenv("DATABASE_URL", "sqlite:///./craftbridge.db"),
-        jwt_secret=os.getenv("JWT_SECRET", "change-this-secret"),
+        database_url=os.getenv("DATABASE_URL"),
+        jwt_secret=os.getenv("JWT_SECRET"),
         jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
         jwt_expire_minutes=int(os.getenv("JWT_EXPIRE_MINUTES", "120")),
         storage_bucket=os.getenv("STORAGE_BUCKET", "craftbridge-local"),

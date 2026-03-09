@@ -10,6 +10,13 @@ class ProductCreateRequest(BaseModel):
     category: str = Field(min_length=2, max_length=120)
 
 
+class ProductUpdateRequest(BaseModel):
+    title: str | None = Field(None, min_length=2, max_length=200)
+    description: str | None = None
+    price: float | None = Field(None, gt=0)
+    category: str | None = Field(None, min_length=2, max_length=120)
+
+
 class ProductImageResponse(BaseModel):
     id: str
     image_url: str

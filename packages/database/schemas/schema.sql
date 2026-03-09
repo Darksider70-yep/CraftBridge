@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(32) UNIQUE,
-    full_name VARCHAR(160) NOT NULL,
+    first_name VARCHAR(80) NOT NULL,
+    last_name VARCHAR(80) NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('customer', 'artisan', 'admin')),
     password_hash TEXT NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -179,6 +180,15 @@ CREATE INDEX IF NOT EXISTS idx_auth_records_product_status
 
 CREATE INDEX IF NOT EXISTS idx_logistics_order_status
     ON logistics_routes (order_id, route_status);
+
+CREATE INDEX IF NOT EXISTS idx_products_category_status
+    ON products (category, status);
+
+CREATE INDEX IF NOT EXISTS idx_orders_artisan_status
+    ON orders (artisan_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_reels_product_id
+    ON reels (product_id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_product_images_primary
     ON product_images (product_id)

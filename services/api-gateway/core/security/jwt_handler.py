@@ -12,6 +12,8 @@ settings = get_settings()
 
 class JWTHandler:
     def __init__(self, secret: str, algorithm: str, expiry_minutes: int) -> None:
+        if algorithm.lower() == "none":
+            raise ValueError("The 'none' algorithm is not supported.")
         self._secret = secret
         self._algorithm = algorithm
         self._expiry_minutes = expiry_minutes

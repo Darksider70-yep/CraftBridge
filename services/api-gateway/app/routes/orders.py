@@ -5,10 +5,11 @@ from app.controllers.orderController import (
     create_order_controller,
     get_order_controller,
     list_user_orders_controller,
+    update_order_controller,
 )
 from app.middleware.authMiddleware import get_current_user
 from app.models.user import User
-from app.schemas.orderSchema import OrderCreateRequest, OrderResponse
+from app.schemas.orderSchema import OrderCreateRequest, OrderResponse, OrderUpdateRequest
 from app.services.orderService import OrderService
 from core.config.database import get_db
 
@@ -28,7 +29,7 @@ def create_order(
 def get_order(
     id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_.id),
 ) -> OrderResponse:
     order = OrderService.get_order_by_id(db=db, order_id=id)
     if current_user.role != "admin" and order.buyer_id != current_user.id:
@@ -51,3 +52,20 @@ def get_user_orders(
             detail="You are not allowed to access these orders.",
         )
     return list_user_orders_controller(db=db, user_id=id)
+
+
+@router.put("/orders/{id}", response_model=OrderResponse)
+def update_order(
+    id: str,
+    payload: OrderUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> OrderResponse:
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to update this order.",
+        )
+    return update_order_controller(
+        db=db, order_id=id, payload=payload, current_user=current_user
+    )

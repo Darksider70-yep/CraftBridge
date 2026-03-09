@@ -2,12 +2,16 @@ import shutil
 import subprocess
 from pathlib import Path
 from uuid import uuid4
-
-from fastapi import UploadFile
+import magic
+from fastapi import HTTPException, UploadFile, status
 
 from core.config.settings import get_settings
 
 settings = get_settings()
+
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif"]
+ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime"]
+MAX_FILE_SIZE = 100 * 1024 * 1024  # 100 MB
 
 
 class S3CompatibleStorage:
@@ -29,6 +33,23 @@ class S3CompatibleStorage:
         ):
             directory.mkdir(parents=True, exist_ok=True)
 
+    async def _validate_file(self, file: UploadFile, allowed_types: list[str]) -> bytes:
+        file_bytes = await file.read()
+        if len(file_bytes) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File size exceeds the limit of {MAX_FILE_SIZE // 1024 // 1024} MB.",
+            )
+
+        mime_type = magic.from_buffer(file_bytes, mime=True)
+        if mime_type not in allowed_types:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail=f"File type '{mime_type}' is not allowed.",
+            )
+        await file.seek(0)
+        return file_bytes
+
     async def upload_file(self, file: UploadFile, folder: str) -> str:
         if folder in {"reels", "videos"}:
             result = await self.upload_video(file=file)
@@ -37,12 +58,12 @@ class S3CompatibleStorage:
 
     async def upload_image(self, file: UploadFile) -> str:
         self._ensure_directories()
+        file_bytes = await self._validate_file(file, ALLOWED_IMAGE_TYPES)
         extension = Path(file.filename or "").suffix.lower() or ".jpg"
         stem = str(uuid4())
         source_path = self.temp_dir / f"{stem}{extension}"
         optimized_path = self.images_dir / f"{stem}.jpg"
 
-        file_bytes = await file.read()
         source_path.write_bytes(file_bytes)
         await file.close()
 
@@ -53,13 +74,13 @@ class S3CompatibleStorage:
 
     async def upload_video(self, file: UploadFile) -> dict[str, str]:
         self._ensure_directories()
+        file_bytes = await self._validate_file(file, ALLOWED_VIDEO_TYPES)
         extension = Path(file.filename or "").suffix.lower() or ".mp4"
         stem = str(uuid4())
         source_path = self.temp_dir / f"{stem}{extension}"
         target_video = self.videos_dir / f"{stem}.mp4"
         target_thumbnail = self.thumbnails_dir / f"{stem}.jpg"
 
-        file_bytes = await file.read()
         source_path.write_bytes(file_bytes)
         await file.close()
 
@@ -71,6 +92,7 @@ class S3CompatibleStorage:
             "video_url": self._build_public_url(f"videos/{target_video.name}"),
             "thumbnail_url": self._build_public_url(f"thumbnails/{target_thumbnail.name}"),
         }
+
 
     def _optimize_image(self, source_path: Path, target_path: Path) -> None:
         ffmpeg_cmd = [

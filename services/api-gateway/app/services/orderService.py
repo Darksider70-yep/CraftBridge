@@ -1,10 +1,11 @@
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
+from app.models.artisan import Artisan
 from app.models.order import Order
 from app.models.product import Product
 from app.models.user import User
-from app.schemas.orderSchema import OrderCreateRequest
+from app.schemas.orderSchema import OrderCreateRequest, OrderUpdateRequest
 
 
 class OrderService:
@@ -46,3 +47,22 @@ class OrderService:
             .order_by(Order.created_at.desc())
             .all()
         )
+
+    @staticmethod
+    def update_order(db: Session, order_id: str, payload: OrderUpdateRequest) -> Order:
+        order = OrderService.get_order_by_id(db=db, order_id=order_id)
+        order.status = payload.status
+
+        if payload.status == "delivered":
+            product = (
+                db.query(Product)
+                .options(joinedload(Product.artisan))
+                .filter(Product.id == order.product_id)
+                .first()
+            )
+            if product and product.artisan:
+                product.artisan.total_sales += product.price * order.quantity
+
+        db.commit()
+        db.refresh(order)
+        return order

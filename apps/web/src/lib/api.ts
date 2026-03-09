@@ -3,6 +3,8 @@ import axios, { AxiosProgressEvent } from "axios";
 export interface UserProfile {
   id: string;
   email: string;
+  first_name: string;
+  last_name: string;
   role: "buyer" | "artisan" | "admin";
   created_at: string;
 }
@@ -16,6 +18,8 @@ export interface LoginResponse {
 export interface RegisterInput {
   email: string;
   password: string;
+  first_name: string;
+  last_name: string;
   role: "buyer" | "artisan" | "admin";
 }
 

@@ -49,6 +49,7 @@ class ReelService:
             db.query(Reel)
             .options(joinedload(Reel.artisan))
             .order_by(Reel.created_at.desc())
+            .limit(1000)
             .all()
         )
 

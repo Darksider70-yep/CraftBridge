@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.models.artisan import Artisan
 from app.models.product import Product
 from app.models.product_image import ProductImage
-from app.schemas.productSchema import ProductCreateRequest
+from app.schemas.productSchema import ProductCreateRequest, ProductUpdateRequest
 from app.services.file_upload import storage_client
 
 
@@ -59,3 +59,36 @@ class ProductService:
         if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
         return product
+
+    @staticmethod
+    def update_product(
+        db: Session, product_id: str, payload: ProductUpdateRequest
+    ) -> Product:
+        product = (
+            db.query(Product)
+            .filter(Product.id == product_id)
+            .first()
+        )
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
+
+        update_data = payload.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(product, key, value)
+
+        db.commit()
+        db.refresh(product)
+        return product
+
+    @staticmethod
+    def delete_product(db: Session, product_id: str) -> None:
+        product = (
+            db.query(Product)
+            .filter(Product.id == product_id)
+            .first()
+        )
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
+
+        db.delete(product)
+        db.commit()
