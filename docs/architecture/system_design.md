@@ -1,97 +1,94 @@
 # CraftBridge System Design
 
 ## 1. System Overview
-CraftBridge is an AI-powered craft marketplace that helps rural artisans digitize and sell handmade products to customers through web and mobile channels. The platform combines catalog commerce, short-form video discovery, AI-assisted content creation, and logistics orchestration in a single ecosystem.
-
-Primary platform goals:
-- Help artisans publish products and media quickly with AI assistance.
-- Improve customer discovery through story-based feeds and recommendations.
-- Provide trusted fulfillment, payment, and authenticity tracking.
+CraftBridge is a microservices-based marketplace platform for artisan commerce, with FastAPI API Gateway as the platform entry point.
 
 ## 2. Architecture Style
-CraftBridge uses a microservices architecture behind a FastAPI API Gateway.
+- Microservices architecture with clear domain boundaries.
+- API Gateway mediates public HTTP access.
+- Stateful components are externalized to managed infrastructure.
 
-### Why this style
-- Service independence: each domain service owns its data and release cycle.
-- Scalability: high-traffic services (reels/media/recommendations) scale independently.
-- Fault isolation: failures in one domain (for example media transcoding) do not fully block checkout or payments.
+## 3. Core Components
+- API Gateway (FastAPI)
+- Product, Reel, Recommendation, Media, Logistics, Payment, Notification services
+- PostgreSQL for relational system-of-record data
+- Redis for cache and async coordination
+- S3-compatible object storage for media assets
+- CDN for media delivery
 
-## 3. System Components And Service Boundaries
-### Client Applications
-- Web Marketplace (Next.js): customer-facing browsing, product details, checkout, and discovery feed experiences.
-- Artisan Mobile App (React Native): offline-first upload, catalog management, reel posting, and order visibility for artisans.
-- Admin Dashboard: moderation, analytics, compliance review, and operational controls.
+## 4. Phase 2 Core Platform Foundation (Implemented)
+As of March 9, 2026, the API Gateway implements backend foundation features without introducing AI behaviors.
 
-### Platform Entry Point
-- API Gateway (FastAPI): unified public API, auth enforcement, request routing, rate limiting, and response shaping.
+### 4.1 API Gateway Foundation
+- `services/api-gateway/main.py` provides:
+  - FastAPI app initialization
+  - CORS middleware
+  - automatic route registration from `app/routes`
+  - `GET /health` and `GET /`
 
-### Domain Services
-- Product Service: product catalog metadata, inventory attributes, and storefront-facing product retrieval.
-- Reel Service: reel metadata, feed pagination, and engagement counters.
-- Recommendation Service: candidate generation and ranking API for feeds and product suggestions.
-- Media Processing Service: image enhancement, video transcoding, compression, and thumbnail generation orchestration.
-- Logistics Service: shipment creation, route records, tracking status, and courier integrations.
-- Payment Service: payment intent lifecycle, transaction status, escrow/payout coordination.
-- Notification Service: event-based messaging via push, email, and SMS.
-- AI Engine: model inference and training pipelines for listing generation, image enhancement, and recommendation models.
+### 4.2 Database Integration
+- SQLAlchemy ORM integration in `services/api-gateway/core/config/database.py`
+- Environment-driven DB connection via `DATABASE_URL`
+- PostgreSQL connection pooling for non-SQLite runtimes
+- Request-scoped DB sessions (`get_db` dependency)
 
-### Data And Infrastructure Components
-- PostgreSQL: system-of-record relational data (users, artisans, products, orders, payments).
-- Redis: caching, ephemeral feed/session data, and asynchronous task coordination.
-- Object Storage (S3/R2): durable media assets (images/videos/thumbnails).
-- CDN: low-latency media delivery for customer and artisan clients.
+### 4.3 Core Data Model
+Implemented SQLAlchemy entities in `services/api-gateway/app/models/`:
+- `User`: account and role identity
+- `Artisan`: artisan profile linked one-to-one with user
+- `Product`: artisan listing metadata
+- `ProductImage`: product image URLs
+- `Reel`: artisan short-video metadata
+- `Order`: base purchase record model
 
-## 4. Architecture Diagram
-```mermaid
-graph TD
-    User((Customer / Artisan)) --> WebApp[Web Marketplace]
-    User --> MobileApp[Artisan Mobile App]
-    Admin((Admin User)) --> AdminDash[Admin Dashboard]
+### 4.4 Authentication and Authorization
+- JWT utility in `services/api-gateway/core/security/jwt_handler.py`
+- Bcrypt password hashing in auth service
+- Protected route dependencies in `app/middleware/authMiddleware.py`
+- Implemented auth endpoints:
+  - `POST /api/v1/auth/register`
+  - `POST /api/v1/auth/login`
+  - `GET /api/v1/auth/me`
 
-    WebApp --> API[API Gateway - FastAPI]
-    MobileApp --> API
-    AdminDash --> API
+Authentication flow:
+1. Client registers account.
+2. Client logs in and receives JWT.
+3. Client sends bearer token on protected APIs.
+4. Gateway verifies token and resolves user identity/role.
 
-    API --> ProductService[Product Service]
-    API --> ReelService[Reel Service]
-    API --> RecommendationService[Recommendation Service]
-    API --> LogisticsService[Logistics Service]
-    API --> PaymentService[Payment Service]
-    API --> NotificationService[Notification Service]
+### 4.5 Product and Media Foundation
+- Artisan profile endpoints:
+  - `POST /api/v1/artisans/create`
+  - `GET /api/v1/artisans/{id}`
+  - `GET /api/v1/artisans`
+- Product endpoints:
+  - `POST /api/v1/products`
+  - `GET /api/v1/products`
+  - `GET /api/v1/products/{id}`
+- Reel endpoints:
+  - `POST /api/v1/reels/upload`
+  - `GET /api/v1/reels/feed`
+- Storefront endpoint:
+  - `GET /api/v1/artisan/{id}/storefront`
 
-    ReelService --> MediaService[Media Processing Service]
-    ProductService --> AIEngine[AI Engine]
-    RecommendationService --> AIEngine
-    MediaService --> AIEngine
+Product upload flow:
+1. Authenticated artisan creates profile (if not existing).
+2. Artisan uploads product metadata + images.
+3. Files are sent through S3-compatible storage abstraction.
+4. Metadata and media URLs are persisted in PostgreSQL.
+5. Storefront endpoint aggregates artisan profile, products, and reels.
 
-    ProductService --> Postgres[(PostgreSQL)]
-    ReelService --> Postgres
-    LogisticsService --> Postgres
-    PaymentService --> Postgres
-    RecommendationService --> Redis[(Redis)]
+### 4.6 Layered Backend Structure
+Implemented pattern across the gateway:
+- Routes -> Controllers -> Services -> Database
 
-    ReelService --> ObjectStorage[(S3 / R2 Object Storage)]
-    MediaService --> ObjectStorage
-    ProductService --> ObjectStorage
+Representative modules:
+- `app/routes/products.py`
+- `app/controllers/productController.py`
+- `app/services/productService.py`
 
-    ObjectStorage --> CDN[CDN Delivery Layer]
-    CDN --> WebApp
-    CDN --> MobileApp
-```
-
-## 5. End-To-End Data Flow
-Artisan Upload -> AI Processing -> Storefront -> Discovery Feed -> Purchase -> Logistics
-
-1. Artisan Upload: an artisan uploads product images and optional reel videos from the mobile app.
-2. AI Processing: media assets are processed by Media Service and AI Engine (enhancement + listing generation draft).
-3. Storefront: Product Service stores curated listing data and exposes storefront payloads via API Gateway.
-4. Discovery Feed: Reel Service + Recommendation Service rank and return personalized feed content.
-5. Purchase: customer places an order; Payment Service creates and confirms transaction state.
-6. Logistics: Logistics Service creates route/tracking records and emits updates to Notification Service.
-
-## 6. Architecture Principles
-- Service isolation: every service owns domain logic and persistence boundaries.
-- Event-driven workflows: asynchronous domain events trigger downstream processing (media, notifications, recommendations).
-- Stateless services: API and worker workloads remain stateless; state is externalized to databases, caches, and object storage.
-- Horizontal scaling: services scale by replicas based on throughput and queue depth.
-- CDN-based media delivery: images and reels are served through CDN-backed object storage for global low-latency access.
+## 5. Local Runtime Topology
+`docker compose up` starts:
+- API Gateway
+- PostgreSQL
+- Redis

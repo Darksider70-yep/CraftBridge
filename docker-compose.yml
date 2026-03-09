@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/api.Dockerfile
+    container_name: craftbridge-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://craftbridge:craftbridge@postgres:5432/craftbridge
+      JWT_SECRET: craftbridge-dev-secret
+      STORAGE_BUCKET: craftbridge-local
+      STORAGE_BASE_URL: https://storage.local
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: craftbridge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: craftbridge
+      POSTGRES_USER: craftbridge
+      POSTGRES_PASSWORD: craftbridge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: craftbridge-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
