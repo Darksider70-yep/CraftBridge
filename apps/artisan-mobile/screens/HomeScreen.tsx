@@ -240,6 +240,12 @@ export default function HomeScreen({ session }: HomeScreenProps) {
               onPress={loadDashboard}
               loading={refreshing}
             />
+            <Pressable 
+              style={styles.logoutButton}
+              onPress={() => session.clearAuthToken()}
+            >
+              <Text style={styles.logoutText}>Sign Out</Text>
+            </Pressable>
           </View>
         </>
       )}
@@ -468,6 +474,21 @@ const styles = StyleSheet.create({
   },
   actions: {
     marginTop: 8,
+    gap: 12,
+  },
+  logoutButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#c75f47",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoutText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#c75f47",
   },
 });
 
