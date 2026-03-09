@@ -11,6 +11,7 @@ class ReelUploadRequest(BaseModel):
 class ReelResponse(BaseModel):
     id: str
     artisan_id: str
+    artisan_name: str | None = None
     product_id: str | None
     video_url: str
     caption: str | None

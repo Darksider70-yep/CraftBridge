@@ -11,6 +11,7 @@ def _reel_response(reel: Reel) -> ReelResponse:
     return ReelResponse(
         id=reel.id,
         artisan_id=reel.artisan_id,
+        artisan_name=reel.artisan.name if reel.artisan else None,
         product_id=reel.product_id,
         video_url=reel.video_url,
         caption=reel.caption,

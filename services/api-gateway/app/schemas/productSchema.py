@@ -18,6 +18,7 @@ class ProductImageResponse(BaseModel):
 class ProductResponse(BaseModel):
     id: str
     artisan_id: str
+    artisan_name: str | None = None
     title: str
     description: str | None
     price: float

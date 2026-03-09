@@ -11,6 +11,7 @@ def _product_response(product: Product) -> ProductResponse:
     return ProductResponse(
         id=product.id,
         artisan_id=product.artisan_id,
+        artisan_name=product.artisan.name if product.artisan else None,
         title=product.title,
         description=product.description,
         price=float(product.price),

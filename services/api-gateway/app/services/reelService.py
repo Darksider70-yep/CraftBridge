@@ -1,5 +1,5 @@
 from fastapi import HTTPException, UploadFile, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.artisan import Artisan
 from app.models.product import Product
@@ -42,4 +42,10 @@ class ReelService:
 
     @staticmethod
     def get_feed(db: Session, limit: int = 20) -> list[Reel]:
-        return db.query(Reel).order_by(Reel.created_at.desc()).limit(limit).all()
+        return (
+            db.query(Reel)
+            .options(joinedload(Reel.artisan))
+            .order_by(Reel.created_at.desc())
+            .limit(limit)
+            .all()
+        )

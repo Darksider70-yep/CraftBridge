@@ -39,7 +39,7 @@ class ProductService:
     def list_products(db: Session) -> list[Product]:
         return (
             db.query(Product)
-            .options(joinedload(Product.images))
+            .options(joinedload(Product.images), joinedload(Product.artisan))
             .order_by(Product.created_at.desc())
             .all()
         )
@@ -48,7 +48,7 @@ class ProductService:
     def get_product(db: Session, product_id: str) -> Product:
         product = (
             db.query(Product)
-            .options(joinedload(Product.images))
+            .options(joinedload(Product.images), joinedload(Product.artisan))
             .filter(Product.id == product_id)
             .first()
         )
