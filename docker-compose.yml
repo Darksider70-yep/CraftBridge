@@ -3,28 +3,29 @@ services:
     build:
       context: .
       dockerfile: infrastructure/docker/artisan-mobile.Dockerfile
-    container_name: craftbridge-artisan-mobile
     restart: unless-stopped
     stdin_open: true
     tty: true
     ports:
-      - "${ARTISAN_MOBILE_METRO_PORT:-18081}:8081"
-      - "${ARTISAN_MOBILE_WS_PORT:-19100}:19000"
-      - "${ARTISAN_MOBILE_DEVTOOLS_PORT:-19101}:19001"
-      - "${ARTISAN_MOBILE_INSPECTOR_PORT:-19102}:19002"
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
     environment:
-      EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-http://localhost:8000/api/v1}
+      EXPO_PUBLIC_API_BASE_URL: http://api-gateway:8000/api/v1
       CHOKIDAR_USEPOLLING: "true"
       EXPO_DEVTOOLS_LISTEN_ADDRESS: 0.0.0.0
-      EXPO_DOCKER_START_MODE: ${EXPO_DOCKER_START_MODE:-lan}
-      REACT_NATIVE_PACKAGER_HOSTNAME: ${REACT_NATIVE_PACKAGER_HOSTNAME:-host.docker.internal}
+      EXPO_DOCKER_START_MODE: lan
+      REACT_NATIVE_PACKAGER_HOSTNAME: 10.3.106.34
+      ELECTRON_DISABLE_SANDBOX: "1"
     volumes:
-      - ./:/app
-      - artisan_mobile_node_modules:/app/apps/artisan-mobile/node_modules
+      - ./apps/artisan-mobile:/app/apps/artisan-mobile  # only mount source, not entire repo
+      - artisan_mobile_node_modules:/app/apps/artisan-mobile/node_modules  # isolate node_modules
     working_dir: /app/apps/artisan-mobile
     command: npm run start:docker
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
 
   web:
     build:
@@ -39,7 +40,8 @@ services:
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
 
   api-gateway:
     build:
@@ -55,8 +57,16 @@ services:
       STORAGE_BUCKET: craftbridge-local
       STORAGE_BASE_URL: http://localhost:8000/storage
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   postgres:
     image: postgres:16-alpine
@@ -70,6 +80,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U craftbridge -d craftbridge"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   redis:
     image: redis:7-alpine
@@ -77,6 +93,11 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres_data:
