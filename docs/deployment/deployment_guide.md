@@ -21,6 +21,7 @@ docker compose up --build
 
 ### Docker Compose Architecture
 Local compose topology includes:
+- `web`: Next.js frontend (marketplace UI).
 - `api-gateway`: FastAPI ingress and route aggregator.
 - `postgres`: relational system of record.
 - `redis`: caching and queue/state coordination.
@@ -28,7 +29,8 @@ Local compose topology includes:
 - `media-workers`: asynchronous image/video processing worker container.
 
 Recommended runtime flow:
-- Clients call `api-gateway`.
+- Browser clients call `web` on port `3000`.
+- `web` calls `api-gateway` on port `8000`.
 - `api-gateway` talks to domain services and persistence layers.
 - `media-workers` and `ai-engine` handle asynchronous processing.
 

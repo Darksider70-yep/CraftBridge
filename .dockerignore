@@ -1,0 +1,17 @@
+.git
+.gitignore
+node_modules
+**/node_modules
+.next
+**/.next
+__pycache__
+**/__pycache__
+.pytest_cache
+**/.pytest_cache
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
