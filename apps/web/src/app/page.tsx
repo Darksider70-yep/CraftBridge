@@ -73,7 +73,7 @@ export default function HomePage() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full"
           >
-            <p className="text-sm font-semibold">🌟 Welcome to CraftBridge</p>
+            <p className="text-sm font-semibold">🌟 Welcome to ShilpSetu</p>
           </motion.div>
 
           <motion.h1
@@ -306,7 +306,7 @@ export default function HomePage() {
             Get Started in 3 Steps
           </h2>
           <p className="text-slate text-lg max-w-2xl mx-auto">
-            Whether you're a buyer or artisan, CraftBridge makes it simple
+            Whether you're a buyer or artisan, ShilpSetu makes it simple
           </p>
         </div>
 

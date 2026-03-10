@@ -8,6 +8,7 @@ from app.controllers.reelController import (
     reel_feed_controller,
     upload_reel_controller,
     view_reel_controller,
+    delete_reel_controller,
 )
 from app.middleware.authMiddleware import require_artisan
 from app.models.user import User
@@ -50,3 +51,12 @@ def like_reel(id: str, db: Session = Depends(get_db)) -> ReelResponse:
 @router.post("/reels/{id}/view", response_model=ReelResponse)
 def view_reel(id: str, db: Session = Depends(get_db)) -> ReelResponse:
     return view_reel_controller(db=db, reel_id=id)
+
+
+@router.delete("/reels/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_reel(
+    id: str,
+    current_user: User = Depends(require_artisan),
+    db: Session = Depends(get_db),
+) -> None:
+    await delete_reel_controller(db=db, reel_id=id, current_user_id=current_user.id)

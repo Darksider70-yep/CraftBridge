@@ -13,9 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import PrimaryButton from "../components/PrimaryButton";
 import { ArtisanSession } from "../app/session";
-import { getApiErrorMessage } from "../services/api";
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+import { getApiErrorMessage, loginUser, type LoginRequest } from "../services/api";
 
 interface LoginScreenProps {
   session: ArtisanSession;
@@ -38,31 +36,26 @@ export default function LoginScreen({ session, onSwitchToRegister }: LoginScreen
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password.trim(),
-        }),
-      });
+      console.log("Attempting login with email:", email);
+      const payload: LoginRequest = {
+        email: email.trim(),
+        password: password.trim(),
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Login failed");
-      }
-
-      const data = await response.json();
+      const response = await loginUser(payload);
+      console.log("Login successful, received token:", response.access_token.substring(0, 20) + "...");
       
-      if (!data.access_token) {
-        throw new Error("No auth token received");
+      if (!response.access_token) {
+        throw new Error("No auth token received from server");
       }
 
-      await session.setAuthToken(data.access_token);
+      await session.setAuthToken(response.access_token);
+      console.log("Auth token saved successfully");
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      const errorMessage = getApiErrorMessage(err);
+      console.log("Login error:", errorMessage);
+      console.error("Full error object:", err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -79,7 +72,7 @@ export default function LoginScreen({ session, onSwitchToRegister }: LoginScreen
           <View style={styles.logoBox}>
             <Text style={styles.logoText}>🎨</Text>
           </View>
-          <Text style={styles.title}>CraftBridge</Text>
+          <Text style={styles.title}>ShilpSetu</Text>
           <Text style={styles.subtitle}>Artisan Dashboard</Text>
         </View>
 

@@ -11,9 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import PrimaryButton from "../components/PrimaryButton";
 import { ArtisanSession } from "../app/session";
-import { getApiErrorMessage } from "../services/api";
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+import { getApiErrorMessage, registerUser, loginUser, type RegisterRequest, type LoginRequest } from "../services/api";
 
 interface RegisterScreenProps {
   session: ArtisanSession;
@@ -39,8 +37,8 @@ export default function RegisterScreen({ session, onSwitchToLogin }: RegisterScr
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -48,50 +46,44 @@ export default function RegisterScreen({ session, onSwitchToLogin }: RegisterScr
     setError(null);
 
     try {
-      // First register the user
-      const registerResponse = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          password: password.trim(),
-        }),
-      });
+      // Split name into first and last name
+      const nameParts = name.trim().split(" ");
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(" ") || firstName;
 
-      if (!registerResponse.ok) {
-        const errorData = await registerResponse.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Registration failed");
-      }
-
-      // Then log them in
-      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password.trim(),
-        }),
-      });
-
-      if (!loginResponse.ok) {
-        const errorData = await loginResponse.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Login failed");
-      }
-
-      const loginData = await loginResponse.json();
+      console.log("Attempting registration with email:", email);
       
-      if (!loginData.access_token) {
+      // First register the user
+      const registerPayload: RegisterRequest = {
+        email: email.trim(),
+        password: password.trim(),
+        first_name: firstName,
+        last_name: lastName,
+      };
+
+      const registerResponse = await registerUser(registerPayload);
+      console.log("Registration successful");
+
+      // Then log them in with the same credentials
+      const loginPayload: LoginRequest = {
+        email: email.trim(),
+        password: password.trim(),
+      };
+
+      const loginResponse = await loginUser(loginPayload);
+      console.log("Login successful after registration");
+      
+      if (!loginResponse.access_token) {
         throw new Error("No auth token received");
       }
 
-      await session.setAuthToken(loginData.access_token);
+      await session.setAuthToken(loginResponse.access_token);
+      console.log("Auth token saved successfully");
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      const errorMessage = getApiErrorMessage(err);
+      console.log("Register error:", errorMessage);
+      console.error("Full error object:", err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -109,7 +101,7 @@ export default function RegisterScreen({ session, onSwitchToLogin }: RegisterScr
             <Text style={styles.logoText}>🎨</Text>
           </View>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join CraftBridge Marketplace</Text>
+          <Text style={styles.subtitle}>Join ShilpSetu Marketplace</Text>
         </View>
 
         {/* Form */}

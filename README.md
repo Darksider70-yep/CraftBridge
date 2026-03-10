@@ -1,6 +1,6 @@
-# CraftBridge
+# ShilpSetu
 
-CraftBridge is an AI-powered craft marketplace platform connecting rural artisans with customers through intelligent storefront creation, short-form discovery, and fulfillment orchestration.
+ShilpSetu is an AI-powered craft marketplace platform connecting rural artisans with customers through intelligent storefront creation, short-form discovery, and fulfillment orchestration.
 
 This repository is currently in **Phase 5: Artisan Mobile Application and Sales Dashboard**.
 
@@ -15,7 +15,7 @@ This repository is currently in **Phase 5: Artisan Mobile Application and Sales 
 - Offline-first Artisan Mobile App
 
 ## Architecture Overview
-CraftBridge uses a microservices architecture with a FastAPI API Gateway entry point.
+ShilpSetu uses a microservices architecture with a FastAPI API Gateway entry point.
 
 High-level stack:
 - Clients: Web Marketplace (Next.js), Artisan Mobile App (React Native), Admin Dashboard

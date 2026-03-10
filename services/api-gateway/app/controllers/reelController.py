@@ -45,3 +45,23 @@ def like_reel_controller(db: Session, reel_id: str) -> ReelResponse:
 def view_reel_controller(db: Session, reel_id: str) -> ReelResponse:
     reel = ReelService.increment_views(db=db, reel_id=reel_id)
     return _reel_response(reel)
+
+
+def delete_reel_controller(db: Session, reel_id: str, current_user_id: str) -> None:
+    reel = db.get(Reel, reel_id)
+    if not reel:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reel not found.",
+        )
+    
+    # Check if user owns the reel
+    if reel.artisan.user_id != current_user_id:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to delete this reel.",
+        )
+    
+    ReelService.delete_reel(db=db, reel_id=reel_id)

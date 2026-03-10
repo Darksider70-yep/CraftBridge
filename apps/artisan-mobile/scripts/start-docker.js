@@ -52,7 +52,14 @@ function maybePrintQr(line) {
     return;
   }
 
-  const expoUrl = match[0];
+  let expoUrl = match[0];
+  
+  // Replace localhost with the host machine IP when in Docker
+  if (expoUrl.includes("127.0.0.1") || expoUrl.includes("localhost")) {
+    const hostIp = process.env.EXPO_HOST_IP || "10.9.7.56";
+    expoUrl = expoUrl.replace(/127\.0\.0\.1|localhost/, hostIp);
+  }
+  
   qrPrinted = true;
 
   console.log("\n=== Expo Go QR (Docker) ===");
@@ -65,7 +72,15 @@ function printQrFromHostUri(hostUri) {
   if (!isDockerRuntime || qrPrinted || !hostUri) {
     return;
   }
-  const expoUrl = `exp://${hostUri}`;
+  
+  // Replace localhost with the host machine IP when in Docker
+  let finalUri = hostUri;
+  if (hostUri.includes("127.0.0.1") || hostUri.includes("localhost")) {
+    const hostIp = process.env.EXPO_HOST_IP || "10.9.7.56";
+    finalUri = hostUri.replace(/127\.0\.0\.1|localhost/, hostIp);
+  }
+  
+  const expoUrl = `exp://${finalUri}`;
   qrPrinted = true;
   console.log("\n=== Expo Go QR (Docker) ===");
   console.log(expoUrl);

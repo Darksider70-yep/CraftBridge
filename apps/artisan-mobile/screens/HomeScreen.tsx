@@ -17,6 +17,7 @@ import {
   DashboardSummary,
   getApiErrorMessage,
   getArtisanDashboard,
+  logoutUser,
 } from "../services/api";
 
 interface HomeScreenProps {
@@ -62,6 +63,11 @@ export default function HomeScreen({ session }: HomeScreenProps) {
     setRefreshing(true);
     loadDashboard();
   }, [loadDashboard]);
+
+  const handleLogout = useCallback(async () => {
+    await logoutUser();
+    await session.clearAuthToken();
+  }, [session]);
 
   // Loading state
   if (loading && !dashboard) {
@@ -242,7 +248,7 @@ export default function HomeScreen({ session }: HomeScreenProps) {
             />
             <Pressable 
               style={styles.logoutButton}
-              onPress={() => session.clearAuthToken()}
+              onPress={handleLogout}
             >
               <Text style={styles.logoutText}>Sign Out</Text>
             </Pressable>

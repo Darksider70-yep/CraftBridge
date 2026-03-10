@@ -214,3 +214,19 @@ export async function getMe(token: string): Promise<UserProfile> {
   });
   return response.data;
 }
+
+export async function deleteProduct(productId: string, token: string): Promise<void> {
+  await api.delete(`/products/${productId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export async function deleteReel(reelId: string, token: string): Promise<void> {
+  await api.delete(`/reels/${reelId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}

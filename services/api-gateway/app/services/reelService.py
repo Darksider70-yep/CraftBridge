@@ -92,3 +92,10 @@ class ReelService:
         now = datetime.now(tz=UTC)
         age_hours = max((now - created_at).total_seconds() / 3600, 0)
         return max(0.0, 72.0 - age_hours)
+
+    @staticmethod
+    def delete_reel(db: Session, reel_id: str) -> None:
+        reel = db.get(Reel, reel_id)
+        if reel:
+            db.delete(reel)
+            db.commit()

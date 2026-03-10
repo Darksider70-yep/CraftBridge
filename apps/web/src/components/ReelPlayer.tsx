@@ -7,13 +7,22 @@ import { Reel } from "@/lib/api";
 interface ReelPlayerProps {
   reel: Reel;
   onVisible?: () => void;
+  showDeleteButton?: boolean;
+  onDelete?: (reelId: string) => void;
 }
 
-export function ReelPlayer({ reel, onVisible }: ReelPlayerProps) {
+export function ReelPlayer({ reel, onVisible, showDeleteButton = false, onDelete }: ReelPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const hasTrackedViewRef = useRef(false);
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onDelete && window.confirm("Delete this reel? This action cannot be undone.")) {
+      onDelete(reel.id);
+    }
+  };
 
   useEffect(() => {
     if (!wrapperRef.current) {
@@ -73,6 +82,14 @@ export function ReelPlayer({ reel, onVisible }: ReelPlayerProps) {
         <p className="mt-1 line-clamp-2 text-sm text-white/90">
           {reel.caption ?? "No caption provided."}
         </p>
+        {showDeleteButton && onDelete && (
+          <button
+            onClick={handleDelete}
+            className="mt-3 px-4 py-2 bg-red-500/90 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors duration-200"
+          >
+            Delete Reel
+          </button>
+        )}
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ export function Footer() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center">
                 <span className="text-white font-bold text-xs">CB</span>
               </div>
-              <h3 className="text-lg font-bold text-primary">CraftBridge</h3>
+              <h3 className="text-lg font-bold text-primary">ShilpSetu</h3>
             </div>
             <p className="text-sm text-slate leading-relaxed">
               Connecting artisans with craft enthusiasts worldwide. Discover authentic handcrafted products.
@@ -93,7 +93,7 @@ export function Footer() {
         {/* Footer Bottom */}
         <div className="mt-12 border-t border-slate-200/30 pt-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <p className="text-sm text-slate">
-            &copy; {currentYear} CraftBridge. All rights reserved.
+            &copy; {currentYear} ShilpSetu. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-sm text-slate hover:text-primary transition-colors duration-200 font-medium">

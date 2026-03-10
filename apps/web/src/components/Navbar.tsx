@@ -45,7 +45,7 @@ export function Navbar() {
               <span className="text-white font-bold text-sm">CB</span>
             </div>
             <span className="hidden sm:inline font-bold text-lg text-ink group-hover:text-primary transition-colors duration-200">
-              CraftBridge
+              ShilpSetu
             </span>
           </Link>
 

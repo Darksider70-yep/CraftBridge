@@ -16,7 +16,7 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       EXPO_DEVTOOLS_LISTEN_ADDRESS: 0.0.0.0
       EXPO_DOCKER_START_MODE: lan
-      REACT_NATIVE_PACKAGER_HOSTNAME: 10.3.106.34
+      EXPO_HOST_IP: 10.9.7.56
       ELECTRON_DISABLE_SANDBOX: "1"
     volumes:
       - ./apps/artisan-mobile:/app/apps/artisan-mobile  # only mount source, not entire repo
@@ -33,7 +33,7 @@ services:
       dockerfile: infrastructure/docker/web.Dockerfile
       args:
         NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
-    container_name: craftbridge-web
+    container_name: shilpsetu-web
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -47,14 +47,14 @@ services:
     build:
       context: .
       dockerfile: infrastructure/docker/api.Dockerfile
-    container_name: craftbridge-api-gateway
+    container_name: shilpsetu-api-gateway
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+psycopg2://craftbridge:craftbridge@postgres:5432/craftbridge
-      JWT_SECRET: craftbridge-dev-secret
-      STORAGE_BUCKET: craftbridge-local
+      DATABASE_URL: postgresql+psycopg2://shilpsetu:shilpsetu@postgres:5432/shilpsetu
+      JWT_SECRET: shilpsetu-dev-secret
+      STORAGE_BUCKET: shilpsetu-local
       STORAGE_BASE_URL: http://localhost:8000/storage
     depends_on:
       postgres:
@@ -70,18 +70,18 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: craftbridge-postgres
+    container_name: shilpsetu-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: craftbridge
-      POSTGRES_USER: craftbridge
-      POSTGRES_PASSWORD: craftbridge
+      POSTGRES_DB: shilpsetu
+      POSTGRES_USER: shilpsetu
+      POSTGRES_PASSWORD: shilpsetu
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U craftbridge -d craftbridge"]
+      test: ["CMD-SHELL", "pg_isready -U shilpsetu -d shilpsetu"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -89,7 +89,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: craftbridge-redis
+    container_name: shilpsetu-redis
     restart: unless-stopped
     ports:
       - "6379:6379"

@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
+  Alert,
 } from "react-native";
 
 import Card from "../components/Card";
@@ -17,6 +19,8 @@ import {
   getArtisanDashboard,
   getStorefront,
   setAuthToken,
+  deleteProduct,
+  deleteReel,
 } from "../services/api";
 
 interface StorefrontScreenProps {
@@ -52,6 +56,52 @@ export default function StorefrontScreen({ session }: StorefrontScreenProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteProduct = async (productId: string, productTitle: string) => {
+    Alert.alert(
+      "Delete Product",
+      `Are you sure you want to delete "${productTitle}"?`,
+      [
+        { text: "Cancel", onPress: () => {}, style: "cancel" },
+        {
+          text: "Delete",
+          onPress: async () => {
+            try {
+              await deleteProduct(productId);
+              setMessage("Product deleted successfully");
+              loadStorefront();
+            } catch (error) {
+              setMessage(getApiErrorMessage(error));
+            }
+          },
+          style: "destructive",
+        },
+      ],
+    );
+  };
+
+  const handleDeleteReel = async (reelId: string) => {
+    Alert.alert(
+      "Delete Reel",
+      "Are you sure you want to delete this reel?",
+      [
+        { text: "Cancel", onPress: () => {}, style: "cancel" },
+        {
+          text: "Delete",
+          onPress: async () => {
+            try {
+              await deleteReel(reelId);
+              setMessage("Reel deleted successfully");
+              loadStorefront();
+            } catch (error) {
+              setMessage(getApiErrorMessage(error));
+            }
+          },
+          style: "destructive",
+        },
+      ],
+    );
   };
 
   useEffect(() => {
@@ -102,6 +152,12 @@ export default function StorefrontScreen({ session }: StorefrontScreenProps) {
                       {product.title}
                     </Text>
                     <Text style={styles.productPrice}>Rs {product.price.toFixed(2)}</Text>
+                    <Pressable
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteProduct(product.id, product.title)}
+                    >
+                      <Text style={styles.deleteButtonText}>Delete</Text>
+                    </Pressable>
                   </View>
                 ))
               )}
@@ -127,6 +183,12 @@ export default function StorefrontScreen({ session }: StorefrontScreenProps) {
                     <Text style={styles.reelStats}>
                       Likes {reel.likes} | Views {reel.views}
                     </Text>
+                    <Pressable
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteReel(reel.id)}
+                    >
+                      <Text style={styles.deleteButtonText}>Delete Reel</Text>
+                    </Pressable>
                   </View>
                 </View>
               ))
@@ -269,6 +331,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#6F5E4D",
     marginTop: 4,
+  },
+  deleteButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#ffebee",
+    borderRadius: 8,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ef5350",
+  },
+  deleteButtonText: {
+    color: "#c33b2a",
+    fontSize: 12,
+    fontWeight: "600",
   },
   message: {
     marginTop: 8,

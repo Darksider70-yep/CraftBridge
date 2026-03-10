@@ -19,7 +19,7 @@ const bodyFont = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "CraftBridge",
+  title: "ShilpSetu",
   description: "Digital marketplace for artisan products and reels.",
 };
 

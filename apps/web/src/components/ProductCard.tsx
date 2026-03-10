@@ -6,15 +6,25 @@ import { Product } from "@/lib/api";
 interface ProductCardProps {
   product: Product;
   showDescription?: boolean;
+  showDeleteButton?: boolean;
+  onDelete?: (productId: string) => void;
 }
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
+const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
-  currency: "USD",
+  currency: "INR",
 });
 
-export function ProductCard({ product, showDescription = false }: ProductCardProps) {
+export function ProductCard({ product, showDescription = false, showDeleteButton = false, onDelete }: ProductCardProps) {
   const imageUrl = product.images[0]?.image_url;
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDelete && window.confirm(`Delete "${product.title}"? This action cannot be undone.`)) {
+      onDelete(product.id);
+    }
+  };
 
   return (
     <motion.div
@@ -94,6 +104,18 @@ export function ProductCard({ product, showDescription = false }: ProductCardPro
                 {product.description}
               </p>
             ) : null}
+
+            {/* Delete Button - Optional */}
+            {showDeleteButton && onDelete && (
+              <motion.button
+                onClick={handleDelete}
+                className="w-full mt-2 px-3 py-2 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-200 hover:bg-red-100 transition-colors duration-200"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Delete Product
+              </motion.button>
+            )}
 
             {/* Rating and Artisan Info - Footer */}
             <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-200/50">

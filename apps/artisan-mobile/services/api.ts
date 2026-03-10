@@ -1,4 +1,22 @@
 import axios, { AxiosError } from "axios";
+import { Platform } from "react-native";
+
+// Determine the correct API base URL
+// When running in Expo Go on the host: use localhost or actual machine IP
+// When running in Docker: use host.docker.internal
+function getApiBaseUrl(): string {
+  let baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+  
+  // If the environment variable says host.docker.internal, replace with localhost
+  // for Expo Go on host machine (127.0.0.1 works for simulator, 10.9.7.56 for physical device)
+  if (baseUrl.includes("host.docker.internal")) {
+    // Use the local machine IP address for physical devices
+    baseUrl = baseUrl.replace("host.docker.internal", "10.9.7.56");
+  }
+  
+  console.log("API Base URL:", baseUrl);
+  return baseUrl;
+}
 
 export interface DashboardOrder {
   order_id: string;
@@ -99,7 +117,7 @@ export interface UploadReelInput {
   video_type?: string;
 }
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -112,6 +130,58 @@ export function setAuthToken(token: string | null): void {
     return;
   }
   delete api.defaults.headers.common.Authorization;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+export async function loginUser(payload: LoginRequest): Promise<AuthResponse> {
+  const response = await api.post<AuthResponse>("/auth/login", payload);
+  return response.data;
+}
+
+export async function registerUser(payload: RegisterRequest): Promise<AuthResponse> {
+  const response = await api.post<AuthResponse>("/auth/register", payload);
+  return response.data;
+}
+
+export async function logoutUser(): Promise<void> {
+  // Clear the auth token from the API client
+  setAuthToken(null);
+  // Optionally call backend logout endpoint if it exists
+  // await api.post("/auth/logout");
+}
+
+export async function deleteProduct(productId: string): Promise<void> {
+  await api.delete(`/products/${productId}`);
+}
+
+export async function deleteReel(reelId: string): Promise<void> {
+  await api.delete(`/reels/${reelId}`);
 }
 
 export async function getArtisanDashboard(recentLimit = 5): Promise<DashboardSummary> {
@@ -183,10 +253,30 @@ export async function getStorefront(artisanId: string): Promise<Storefront> {
 
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ detail?: string }>;
-    if (axiosError.response?.data?.detail) {
+    const axiosError = error as AxiosError<any>;
+    
+    // Handle Pydantic validation errors (array of error objects)
+    if (Array.isArray(axiosError.response?.data?.detail)) {
+      const errors = axiosError.response.data.detail;
+      if (errors.length > 0) {
+        const firstError = errors[0];
+        if (typeof firstError === "object" && firstError.msg) {
+          return firstError.msg;
+        }
+      }
+      return "Validation error. Please check your input.";
+    }
+    
+    // Handle string detail messages
+    if (typeof axiosError.response?.data?.detail === "string") {
       return axiosError.response.data.detail;
     }
+    
+    // Handle generic error messages
+    if (axiosError.response?.data?.message) {
+      return axiosError.response.data.message;
+    }
+    
     if (axiosError.message) {
       return axiosError.message;
     }

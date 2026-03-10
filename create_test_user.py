@@ -16,13 +16,13 @@ db = Session()
 
 try:
     # Check if test user already exists
-    existing = db.query(User).filter(User.email == 'test@craftbridge.com').first()
+    existing = db.query(User).filter(User.email == 'test@shilpsetu.com').first()
     if existing:
         print('Test user already exists')
     else:
         # Create test user using the auth service
         payload = RegisterRequest(
-            email='test@craftbridge.com',
+            email='test@shilpsetu.com',
             password='Test123456!',
             first_name='Test',
             last_name='Artisan',

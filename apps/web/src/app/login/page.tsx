@@ -48,7 +48,7 @@ export default function LoginPage() {
   return (
     <section className="mx-auto max-w-md rounded-card border border-slate-200 bg-white p-6 shadow-card">
       <p className="text-sm font-semibold uppercase tracking-wide text-accent">Auth</p>
-      <h1 className="mt-2 font-[var(--font-heading)] text-2xl font-bold text-ink">Login to CraftBridge</h1>
+      <h1 className="mt-2 font-[var(--font-heading)] text-2xl font-bold text-ink">Login to ShilpSetu</h1>
 
       <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
         <label className="block text-sm font-medium text-ink">

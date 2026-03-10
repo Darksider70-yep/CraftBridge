@@ -1,4 +1,4 @@
-# CraftBridge Deployment Guide (Phase 1)
+# ShilpSetu Deployment Guide (Phase 1)
 
 ## 1. Local Development Setup
 This phase is documentation-first and architecture-first. Local setup is focused on running platform dependencies and service shells for integration planning.

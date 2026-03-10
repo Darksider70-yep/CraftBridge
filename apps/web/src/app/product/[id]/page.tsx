@@ -12,9 +12,9 @@ interface ProductDetailPageProps {
   };
 }
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
+const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
-  currency: "USD",
+  currency: "INR",
 });
 
 export default function ProductDetailPage({ params }: ProductDetailPageProps) {
