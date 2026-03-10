@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   TextInput,
   Pressable,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -27,7 +26,10 @@ export default function LoginScreen({ session, onSwitchToRegister }: LoginScreen
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = useCallback(async () => {
-    if (!email.trim() || !password.trim()) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPassword = password;
+
+    if (!normalizedEmail || !normalizedPassword) {
       setError("Please enter both email and password");
       return;
     }
@@ -36,14 +38,13 @@ export default function LoginScreen({ session, onSwitchToRegister }: LoginScreen
     setError(null);
 
     try {
-      console.log("Attempting login with email:", email);
+      console.log("Attempting login with email:", normalizedEmail);
       const payload: LoginRequest = {
-        email: email.trim(),
-        password: password.trim(),
+        email: normalizedEmail,
+        password: normalizedPassword,
       };
 
       const response = await loginUser(payload);
-      console.log("Login successful, received token:", response.access_token.substring(0, 20) + "...");
       
       if (!response.access_token) {
         throw new Error("No auth token received from server");
@@ -53,8 +54,7 @@ export default function LoginScreen({ session, onSwitchToRegister }: LoginScreen
       console.log("Auth token saved successfully");
     } catch (err) {
       const errorMessage = getApiErrorMessage(err);
-      console.log("Login error:", errorMessage);
-      console.error("Full error object:", err);
+      console.warn("Login failed:", errorMessage);
       setError(errorMessage);
     } finally {
       setLoading(false);

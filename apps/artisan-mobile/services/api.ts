@@ -254,10 +254,11 @@ export async function getStorefront(artisanId: string): Promise<Storefront> {
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<any>;
+    const responseData = axiosError.response?.data;
     
     // Handle Pydantic validation errors (array of error objects)
-    if (Array.isArray(axiosError.response?.data?.detail)) {
-      const errors = axiosError.response.data.detail;
+    if (Array.isArray(responseData?.detail)) {
+      const errors = responseData.detail;
       if (errors.length > 0) {
         const firstError = errors[0];
         if (typeof firstError === "object" && firstError.msg) {
@@ -268,13 +269,22 @@ export function getApiErrorMessage(error: unknown): string {
     }
     
     // Handle string detail messages
-    if (typeof axiosError.response?.data?.detail === "string") {
-      return axiosError.response.data.detail;
+    if (typeof responseData?.detail === "string") {
+      return responseData.detail;
+    }
+
+    // Handle string response body
+    if (typeof responseData === "string" && responseData.trim().length > 0) {
+      return responseData;
+    }
+
+    if (axiosError.response?.status === 401) {
+      return "Invalid email or password.";
     }
     
     // Handle generic error messages
-    if (axiosError.response?.data?.message) {
-      return axiosError.response.data.message;
+    if (responseData?.message) {
+      return responseData.message;
     }
     
     if (axiosError.message) {
