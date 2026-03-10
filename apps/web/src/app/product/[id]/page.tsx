@@ -2,22 +2,23 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 
 import { createOrder, getProductDetails, Product } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-
-interface ProductDetailPageProps {
-  params: {
-    id: string;
-  };
-}
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
   currency: "INR",
 });
 
-export default function ProductDetailPage({ params }: ProductDetailPageProps) {
+export default function ProductDetailPage() {
+  const params = useParams<{ id?: string | string[] }>();
+  const productId = useMemo(() => {
+    const id = params?.id;
+    return Array.isArray(id) ? id[0] : id;
+  }, [params]);
+
   const { token, isAuthenticated } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -28,14 +29,39 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getProductDetails(params.id)
+    if (!productId) {
+      return;
+    }
+
+    let active = true;
+    setIsLoading(true);
+
+    getProductDetails(productId)
       .then((data) => {
+        if (!active) {
+          return;
+        }
         setProduct(data);
+        setError(null);
         setSelectedImage(0);
       })
-      .catch(() => setError("Product not found."))
-      .finally(() => setIsLoading(false));
-  }, [params.id]);
+      .catch(() => {
+        if (!active) {
+          return;
+        }
+        setError("Product not found.");
+        setProduct(null);
+      })
+      .finally(() => {
+        if (active) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [productId]);
 
   const primaryImage = useMemo(() => {
     if (!product || !product.images.length) {
@@ -229,4 +255,3 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     </section>
   );
 }
-

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 
 import { ProductCard } from "@/components/ProductCard";
@@ -9,23 +10,23 @@ import { getStorefront, Storefront } from "@/lib/api";
 
 const REFRESH_INTERVAL_MS = 10_000;
 
-interface ArtisanStorefrontPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function ArtisanStorefrontPage({ params }: ArtisanStorefrontPageProps) {
+export default function ArtisanStorefrontPage() {
+  const params = useParams<{ id?: string | string[] }>();
+  const artisanId = Array.isArray(params?.id) ? params?.id[0] : params?.id;
   const [storefront, setStorefront] = useState<Storefront | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!artisanId) {
+      return;
+    }
+
     let active = true;
 
     const load = async () => {
       try {
-        const data = await getStorefront(params.id);
+        const data = await getStorefront(artisanId);
         if (!active) {
           return;
         }
@@ -48,14 +49,18 @@ export default function ArtisanStorefrontPage({ params }: ArtisanStorefrontPageP
     return () => {
       active = false;
     };
-  }, [params.id]);
+  }, [artisanId]);
 
   useEffect(() => {
+    if (!artisanId) {
+      return;
+    }
+
     let active = true;
 
     const refresh = async () => {
       try {
-        const data = await getStorefront(params.id);
+        const data = await getStorefront(artisanId);
         if (!active) {
           return;
         }
@@ -89,7 +94,7 @@ export default function ArtisanStorefrontPage({ params }: ArtisanStorefrontPageP
       window.removeEventListener("focus", onFocusOrVisible);
       document.removeEventListener("visibilitychange", onFocusOrVisible);
     };
-  }, [params.id]);
+  }, [artisanId]);
 
   if (isLoading) {
     return (
@@ -231,4 +236,3 @@ export default function ArtisanStorefrontPage({ params }: ArtisanStorefrontPageP
     </section>
   );
 }
-

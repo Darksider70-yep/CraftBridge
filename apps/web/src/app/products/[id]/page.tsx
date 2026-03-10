@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 
 interface LegacyProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function LegacyProductPage({ params }: LegacyProductPageProps) {
-  redirect(`/product/${params.id}`);
+export default async function LegacyProductPage({ params }: LegacyProductPageProps) {
+  const { id } = await params;
+  redirect(`/product/${id}`);
 }
-
